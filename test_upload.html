@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test de Upload</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+        .test-area { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        input[type="file"] { margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #result { background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 4px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Upload</h1>
+
+    <div class="test-area">
+        <h2>Test 1: Input File Directo</h2>
+        <input type="file" id="fileInput1">
+        <button onclick="testUpload1()">Subir con Input</button>
+    </div>
+
+    <div class="test-area">
+        <h2>Test 2: Botón que dispara Input</h2>
+        <input type="file" id="fileInput2" hidden>
+        <button onclick="document.getElementById('fileInput2').click()">Seleccionar Archivo</button>
+        <button onclick="testUpload2()">Subir Archivo Seleccionado</button>
+    </div>
+
+    <div class="test-area">
+        <h2>Test 3: Como en la App (con eventos)</h2>
+        <input type="file" id="fileInput3" hidden>
+        <button id="selectBtn">Seleccionar Archivo</button>
+        <div id="selectedFile"></div>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        // Test 1
+        function testUpload1() {
+            const fileInput = document.getElementById('fileInput1');
+            if (fileInput.files.length === 0) {
+                showResult('❌ No se seleccionó ningún archivo', 'error');
+                return;
+            }
+            uploadFile(fileInput.files[0]);
+        }
+
+        // Test 2
+        function testUpload2() {
+            const fileInput = document.getElementById('fileInput2');
+            if (fileInput.files.length === 0) {
+                showResult('❌ No se seleccionó ningún archivo', 'error');
+                return;
+            }
+            uploadFile(fileInput.files[0]);
+        }
+
+        // Test 3 - Como en la app
+        const fileInput3 = document.getElementById('fileInput3');
+        const selectBtn = document.getElementById('selectBtn');
+        const selectedFile = document.getElementById('selectedFile');
+
+        selectBtn.addEventListener('click', (e) => {
+            console.log('Botón clickeado');
+            e.stopPropagation();
+            fileInput3.click();
+        });
+
+        fileInput3.addEventListener('change', (e) => {
+            console.log('Archivo seleccionado:', e.target.files);
+            if (fileInput3.files.length > 0) {
+                selectedFile.textContent = '📁 Archivo: ' + fileInput3.files[0].name;
+                uploadFile(fileInput3.files[0]);
+            }
+        });
+
+        function uploadFile(file) {
+            showResult('⏳ Subiendo ' + file.name + '...', '');
+
+            const formData = new FormData();
+            formData.append('logfile', file);
+
+            fetch('upload.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta:', data);
+                if (data.success) {
+                    showResult('✅ ¡Éxito! ' + data.message, 'success');
+                } else {
+                    showResult('❌ Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('❌ Error de conexión: ' + error.message, 'error');
+            });
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="' + type + '">' + message + '</div>';
+        }
+    </script>
+
+    <p><a href="index.php">← Volver a la aplicación</a></p>
+</body>
+</html>

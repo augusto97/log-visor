@@ -50,8 +50,34 @@ class LogParser {
 
         // Try different log formats (order matters - most specific first)
 
+        // Apache Error Log with module and all details: [timestamp] [module:level] [pid x:tid y] [client ip:port] message
+        if (preg_match('/^\[([^\]]+)\] \[([^:]+):(error|warn|notice|info|debug|crit|alert|emerg)\] \[pid ([^\]]+)\] \[client ([^\]]+)\] (.*)$/i', $line, $matches)) {
+            $entry['timestamp'] = $this->parseDate($matches[1]);
+            $entry['level'] = strtoupper($matches[3]);
+            $rawMessage = trim($matches[6]);
+
+            // Extract error code if present (e.g., AH01071:)
+            if (preg_match('/^(AH\d+):\s*(.*)/', $rawMessage, $msgMatch)) {
+                $entry['context']['error_code'] = $msgMatch[1];
+                $entry['message'] = $msgMatch[2];
+            } else {
+                $entry['message'] = $rawMessage;
+            }
+
+            $entry['context']['module'] = $matches[2];
+            $entry['context']['pid'] = $matches[4];
+            $entry['context']['client'] = $matches[5];
+        }
+        // Apache Error Log without PID: [timestamp] [module:level] [client ip] message
+        elseif (preg_match('/^\[([^\]]+)\] \[([^:]+):(error|warn|notice|info|debug|crit|alert|emerg)\] \[client ([^\]]+)\] (.*)$/i', $line, $matches)) {
+            $entry['timestamp'] = $this->parseDate($matches[1]);
+            $entry['level'] = strtoupper($matches[3]);
+            $entry['message'] = trim($matches[5]);
+            $entry['context']['module'] = $matches[2];
+            $entry['context']['client'] = $matches[4];
+        }
         // Apache/Nginx access log
-        if (preg_match('/^(\S+) \S+ \S+ \[(.*?)\] "(.*?)" (\d+) (\d+|-) "(.*?)" "(.*?)"/', $line, $matches)) {
+        elseif (preg_match('/^(\S+) \S+ \S+ \[(.*?)\] "(.*?)" (\d+) (\d+|-) "(.*?)" "(.*?)"/', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[2]);
             $entry['level'] = 'ACCESS';
             $entry['message'] = $matches[3];
@@ -60,15 +86,8 @@ class LogParser {
                 'status' => $matches[4],
                 'size' => $matches[5],
                 'referer' => $matches[6],
-                'user_agent' => $matches[7]
+                'user_agent' => substr($matches[7], 0, 100) // Truncate long UA
             ];
-        }
-        // Apache/Nginx error log with 3 brackets
-        elseif (preg_match('/^\[(.*?)\] \[(.*?)\] \[(.*?)\] (.*)/', $line, $matches)) {
-            $entry['timestamp'] = $this->parseDate($matches[1]);
-            $entry['level'] = strtoupper($matches[2]);
-            $entry['message'] = $matches[4];
-            $entry['context']['client'] = $matches[3];
         }
         // PHP error log: [date] PHP Level: message
         elseif (preg_match('/^\[(.*?)\] PHP (Fatal error|Parse error|Warning|Notice|Deprecated|Error|Strict Standards):(.*)/', $line, $matches)) {
@@ -88,7 +107,19 @@ class LogParser {
             $entry['level'] = strtoupper($matches[2]);
             $entry['message'] = $matches[3];
         }
-        // Format: [date] message (only if date is valid and message doesn't start with level)
+        // Generic: [timestamp] [anything] [anything] message
+        elseif (preg_match('/^\[([^\]]+)\] \[([^\]]+)\] \[([^\]]+)\] (.*)/', $line, $matches)) {
+            $entry['timestamp'] = $this->parseDate($matches[1]);
+
+            // Check if second bracket contains level
+            if (preg_match('/(error|warn|warning|info|debug|notice|critical|alert|emergency)/i', $matches[2], $levelMatch)) {
+                $entry['level'] = strtoupper($levelMatch[1]);
+            }
+
+            $entry['message'] = trim($matches[4]);
+            $entry['context']['meta'] = $matches[2] . ' ' . $matches[3];
+        }
+        // Format: [date] message (only if date is valid)
         elseif (preg_match('/^\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^\]]*)\]\s+(.*)$/i', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[1]);
             $entry['message'] = $matches[2];
@@ -112,6 +143,11 @@ class LogParser {
         }
 
         $entry['level'] = $this->normalizeLevel($entry['level']);
+
+        // Truncate very long messages for display
+        if (strlen($entry['message']) > 500) {
+            $entry['message'] = substr($entry['message'], 0, 500) . '...';
+        }
 
         return $entry;
     }
@@ -143,26 +179,31 @@ class LogParser {
      */
     private function parseDate($dateStr) {
         try {
+            // Remove microseconds if present to simplify parsing
+            $dateStr = preg_replace('/\.(\d{6})/', '', $dateStr);
+
             // Try common formats
             $formats = [
-                'd/M/Y:H:i:s O',  // Apache
-                'D M d H:i:s Y',  // Nginx error
-                'd-M-Y H:i:s e',  // PHP
-                'Y-m-d H:i:s',    // MySQL
-                'Y-m-d\TH:i:sP',  // ISO8601
-                'Y-m-d\TH:i:s.uP' // ISO8601 with microseconds
+                'D M d H:i:s Y',       // Apache: Mon Apr 07 09:01:14 2025
+                'D M d H:i:s.u Y',     // Apache with microseconds
+                'd/M/Y:H:i:s O',       // Apache access: 07/Apr/2025:09:01:14 +0000
+                'd-M-Y H:i:s e',       // PHP: 13-Nov-2025 10:00:00 UTC
+                'Y-m-d H:i:s',         // MySQL: 2025-11-13 10:00:00
+                'Y-m-d\TH:i:sP',       // ISO8601: 2025-11-13T10:00:00+00:00
+                'Y-m-d\TH:i:s.uP',     // ISO8601 with microseconds
+                'M d H:i:s',           // Syslog: Apr 07 09:01:14 (add current year)
             ];
 
             foreach ($formats as $format) {
                 $date = DateTime::createFromFormat($format, $dateStr);
-                if ($date !== false) {
+                if ($date !== false && $date->format($format) === $dateStr) {
                     return $date->format('Y-m-d H:i:s');
                 }
             }
 
-            // Try strtotime as fallback
+            // Try strtotime as fallback (very flexible but slower)
             $timestamp = strtotime($dateStr);
-            if ($timestamp !== false) {
+            if ($timestamp !== false && $timestamp > 0) {
                 return date('Y-m-d H:i:s', $timestamp);
             }
         } catch (Exception $e) {

@@ -297,35 +297,61 @@ body {
 
 .log-header {
     display: grid;
-    grid-template-columns: 80px 180px 120px 1fr;
-    gap: 15px;
-    padding: 15px;
+    grid-template-columns: 70px 170px 110px 1fr;
+    gap: 10px;
+    padding: 12px 15px;
     background: var(--secondary-color);
     color: white;
     border-radius: 8px 8px 0 0;
     font-weight: 600;
+    font-size: 0.95rem;
+    align-items: center;
+}
+
+.log-header > span {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    padding-right: 10px;
+}
+
+.log-header > span:last-child {
+    border-right: none;
 }
 
 .log-list {
     max-height: 600px;
     overflow-y: auto;
+    overflow-x: hidden;
     border: 2px solid var(--border-color);
     border-top: none;
     border-radius: 0 0 8px 8px;
+    background: white;
 }
 
 .log-entry {
     display: grid;
-    grid-template-columns: 80px 180px 120px 1fr;
-    gap: 15px;
-    padding: 15px;
+    grid-template-columns: 70px 170px 110px 1fr;
+    gap: 10px;
+    padding: 12px 15px;
     border-bottom: 1px solid var(--border-color);
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
+    align-items: center;
+    min-height: 50px;
+}
+
+.log-entry > div {
+    border-right: 1px solid var(--border-color);
+    padding-right: 10px;
+    overflow: hidden;
+}
+
+.log-entry > div:last-child {
+    border-right: none;
 }
 
 .log-entry:hover {
-    background: var(--bg-primary);
+    background: #f8f9fa;
+    box-shadow: inset 0 0 0 1px var(--primary-color);
 }
 
 .log-entry:last-child {
@@ -334,22 +360,29 @@ body {
 
 .log-line {
     color: var(--text-secondary);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
 }
 
 .log-timestamp {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
 }
 
 .log-level {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
     text-align: center;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    min-width: 80px;
 }
 
 .log-level.error {

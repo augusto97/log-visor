@@ -41,17 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Upload
-    selectFileBtn.addEventListener('click', () => fileInput.click());
+    // Upload - Button with event stop propagation
+    selectFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        fileInput.click();
+    });
+
     fileInput.addEventListener('change', handleFileSelect);
 
     // Drag and drop
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
+
+    // Click on upload area (but not on button or its children)
     uploadArea.addEventListener('click', (e) => {
-        // Only trigger if clicking directly on the upload area, not on the button
-        if (e.target === uploadArea || (e.target.closest('.upload-area') && !e.target.closest('button'))) {
+        // Only if clicking on the area itself, not on button
+        if (!e.target.closest('button')) {
             fileInput.click();
         }
     });
@@ -404,23 +410,94 @@ function loadPage(page) {
 // Show log detail in modal
 function showLogDetail(entry) {
     let detailHTML = `
-        <p><strong>Línea:</strong> ${entry.line_number}</p>
-        <p><strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}</p>
-        <p><strong>Nivel:</strong> <span class="log-level ${entry.level.toLowerCase()}">${entry.level}</span></p>
-        <p><strong>Mensaje:</strong></p>
-        <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
-            ${escapeHtml(entry.message)}
+        <div style="display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-bottom: 20px;">
+            <div><strong>Línea:</strong></div>
+            <div>#${entry.line_number}</div>
+
+            <div><strong>Timestamp:</strong></div>
+            <div>${entry.timestamp || 'N/A'}</div>
+
+            <div><strong>Nivel:</strong></div>
+            <div><span class="log-level ${entry.level.toLowerCase()}">${entry.level}</span></div>
+    `;
+
+    // Add context information if available
+    if (entry.context && Object.keys(entry.context).length > 0) {
+        if (entry.context.module) {
+            detailHTML += `
+                <div><strong>Módulo:</strong></div>
+                <div>${escapeHtml(entry.context.module)}</div>
+            `;
+        }
+        if (entry.context.error_code) {
+            detailHTML += `
+                <div><strong>Código Error:</strong></div>
+                <div><code>${escapeHtml(entry.context.error_code)}</code></div>
+            `;
+        }
+        if (entry.context.pid) {
+            detailHTML += `
+                <div><strong>PID:</strong></div>
+                <div><code>${escapeHtml(entry.context.pid)}</code></div>
+            `;
+        }
+        if (entry.context.client) {
+            detailHTML += `
+                <div><strong>Cliente:</strong></div>
+                <div><code>${escapeHtml(entry.context.client)}</code></div>
+            `;
+        }
+        if (entry.context.ip) {
+            detailHTML += `
+                <div><strong>IP:</strong></div>
+                <div><code>${escapeHtml(entry.context.ip)}</code></div>
+            `;
+        }
+        if (entry.context.status) {
+            detailHTML += `
+                <div><strong>Status HTTP:</strong></div>
+                <div><span style="font-weight: bold; color: ${entry.context.status >= 400 ? '#e74c3c' : '#27ae60'}">${entry.context.status}</span></div>
+            `;
+        }
+    }
+
+    detailHTML += `</div>`;
+
+    detailHTML += `
+        <div style="margin-bottom: 15px;">
+            <strong>Mensaje:</strong>
+            <div style="background: #f5f7fa; padding: 15px; border-radius: 6px; margin-top: 10px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word;">
+                ${escapeHtml(entry.message)}
+            </div>
         </div>
     `;
 
-    if (entry.context && Object.keys(entry.context).length > 0) {
-        detailHTML += '<p><strong>Contexto:</strong></p><pre>' + JSON.stringify(entry.context, null, 2) + '</pre>';
+    // Show full context as JSON if there are additional fields
+    const displayedKeys = ['module', 'error_code', 'pid', 'client', 'ip', 'status'];
+    const remainingContext = {};
+    if (entry.context) {
+        Object.keys(entry.context).forEach(key => {
+            if (!displayedKeys.includes(key)) {
+                remainingContext[key] = entry.context[key];
+            }
+        });
+    }
+
+    if (Object.keys(remainingContext).length > 0) {
+        detailHTML += `
+            <div style="margin-bottom: 15px;">
+                <strong>Información Adicional:</strong>
+                <pre style="background: #f5f7fa; padding: 15px; border-radius: 6px; margin-top: 10px; overflow-x: auto;">${JSON.stringify(remainingContext, null, 2)}</pre>
+            </div>
+        `;
     }
 
     detailHTML += `
-        <p><strong>Línea completa:</strong></p>
-        <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
-            ${escapeHtml(entry.raw)}
+        <div>
+            <strong>Línea Completa del Log:</strong>
+            <div style="background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; margin-top: 10px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; font-size: 0.9em;">
+                ${escapeHtml(entry.raw)}
+            </div>
         </div>
     `;
 
