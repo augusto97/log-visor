@@ -14,143 +14,177 @@ const STATE = {
     tableColumns: []
 };
 
-// DOM Elements
-const DOM = {
-    // Upload
-    uploadContainer: document.getElementById('uploadContainer'),
-    uploadBox: document.getElementById('uploadBox'),
-    uploadLoading: document.getElementById('uploadLoading'),
-    fileInput: document.getElementById('fileInput'),
-    selectFileBtn: document.getElementById('selectFileBtn'),
-
-    // Top Bar
-    fileInfo: document.getElementById('fileInfo'),
-    fileNameDisplay: document.getElementById('fileNameDisplay'),
-    fileStatsDisplay: document.getElementById('fileStatsDisplay'),
-    closeFileBtn: document.getElementById('closeFileBtn'),
-
-    // Main Container
-    mainContainer: document.getElementById('mainContainer'),
-
-    // View Controls
-    viewBtns: document.querySelectorAll('.view-btn'),
-    viewControls: document.getElementById('viewControls'),
-    searchInput: document.getElementById('searchInput'),
-    levelSelect: document.getElementById('levelSelect'),
-    applyFilters: document.getElementById('applyFilters'),
-
-    // Views
-    dashboardView: document.getElementById('dashboardView'),
-    tableView: document.getElementById('tableView'),
-    compactView: document.getElementById('compactView'),
-    consoleView: document.getElementById('consoleView'),
-    timelineView: document.getElementById('timelineView'),
-
-    // Dashboard Elements
-    totalLogs: document.getElementById('totalLogs'),
-    errorCount: document.getElementById('errorCount'),
-    warningCount: document.getElementById('warningCount'),
-    infoCount: document.getElementById('infoCount'),
-    levelChart: document.getElementById('levelChart'),
-    timelineChart: document.getElementById('timelineChart'),
-    insights: document.getElementById('insights'),
-    recentErrors: document.getElementById('recentErrors'),
-
-    // Table View
-    logTableHead: document.getElementById('logTableHead'),
-    logTableBody: document.getElementById('logTableBody'),
-
-    // Other Views
-    compactList: document.getElementById('compactList'),
-    consoleOutput: document.getElementById('consoleOutput'),
-    timelineContainer: document.getElementById('timelineContainer'),
-
-    // Pagination
-    paginationBar: document.getElementById('paginationBar'),
-    paginationInfo: document.getElementById('paginationInfo'),
-    firstPage: document.getElementById('firstPage'),
-    prevPage: document.getElementById('prevPage'),
-    nextPage: document.getElementById('nextPage'),
-    lastPage: document.getElementById('lastPage'),
-    pageNumbers: document.getElementById('pageNumbers'),
-    pageSize: document.getElementById('pageSize'),
-
-    // Modal
-    logModal: document.getElementById('logModal'),
-    modalClose: document.getElementById('modalClose'),
-    logDetail: document.getElementById('logDetail'),
-
-    loadingOverlay: document.getElementById('loadingOverlay')
-};
+// DOM Elements - will be initialized after DOMContentLoaded
+let DOM = {};
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    initDOM();
     initEventListeners();
     checkExistingSession();
 });
 
+function initDOM() {
+    DOM = {
+        // Upload
+        uploadContainer: document.getElementById('uploadContainer'),
+        uploadBox: document.getElementById('uploadBox'),
+        uploadLoading: document.getElementById('uploadLoading'),
+        fileInput: document.getElementById('fileInput'),
+        selectFileBtn: document.getElementById('selectFileBtn'),
+
+        // Top Bar
+        fileInfo: document.getElementById('fileInfo'),
+        fileNameDisplay: document.getElementById('fileNameDisplay'),
+        fileStatsDisplay: document.getElementById('fileStatsDisplay'),
+        closeFileBtn: document.getElementById('closeFileBtn'),
+
+        // Main Container
+        mainContainer: document.getElementById('mainContainer'),
+
+        // View Controls
+        viewBtns: document.querySelectorAll('.view-btn'),
+        viewControls: document.getElementById('viewControls'),
+        searchInput: document.getElementById('searchInput'),
+        levelSelect: document.getElementById('levelSelect'),
+        applyFilters: document.getElementById('applyFilters'),
+
+        // Views
+        dashboardView: document.getElementById('dashboardView'),
+        tableView: document.getElementById('tableView'),
+        compactView: document.getElementById('compactView'),
+        consoleView: document.getElementById('consoleView'),
+        timelineView: document.getElementById('timelineView'),
+
+        // Dashboard Elements
+        totalLogs: document.getElementById('totalLogs'),
+        errorCount: document.getElementById('errorCount'),
+        warningCount: document.getElementById('warningCount'),
+        infoCount: document.getElementById('infoCount'),
+        levelChart: document.getElementById('levelChart'),
+        timelineChart: document.getElementById('timelineChart'),
+        insights: document.getElementById('insights'),
+        recentErrors: document.getElementById('recentErrors'),
+
+        // Table View
+        logTableHead: document.getElementById('logTableHead'),
+        logTableBody: document.getElementById('logTableBody'),
+
+        // Other Views
+        compactList: document.getElementById('compactList'),
+        consoleOutput: document.getElementById('consoleOutput'),
+        timelineContainer: document.getElementById('timelineContainer'),
+
+        // Pagination
+        paginationBar: document.getElementById('paginationBar'),
+        paginationInfo: document.getElementById('paginationInfo'),
+        firstPage: document.getElementById('firstPage'),
+        prevPage: document.getElementById('prevPage'),
+        nextPage: document.getElementById('nextPage'),
+        lastPage: document.getElementById('lastPage'),
+        pageNumbers: document.getElementById('pageNumbers'),
+        pageSize: document.getElementById('pageSize'),
+
+        // Modal
+        logModal: document.getElementById('logModal'),
+        modalClose: document.getElementById('modalClose'),
+        logDetail: document.getElementById('logDetail'),
+
+        loadingOverlay: document.getElementById('loadingOverlay')
+    };
+}
+
 function initEventListeners() {
     // Upload
-    DOM.selectFileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        DOM.fileInput.click();
-    });
-
-    DOM.uploadBox.addEventListener('click', (e) => {
-        if (!e.target.closest('button')) {
+    if (DOM.selectFileBtn) {
+        DOM.selectFileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             DOM.fileInput.click();
-        }
-    });
+        });
+    }
 
-    DOM.fileInput.addEventListener('change', handleFileSelect);
+    if (DOM.uploadBox) {
+        DOM.uploadBox.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                DOM.fileInput.click();
+            }
+        });
 
-    // Drag & Drop
-    DOM.uploadBox.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        DOM.uploadBox.classList.add('drag-over');
-    });
+        // Drag & Drop
+        DOM.uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            DOM.uploadBox.classList.add('drag-over');
+        });
 
-    DOM.uploadBox.addEventListener('dragleave', () => {
-        DOM.uploadBox.classList.remove('drag-over');
-    });
+        DOM.uploadBox.addEventListener('dragleave', () => {
+            DOM.uploadBox.classList.remove('drag-over');
+        });
 
-    DOM.uploadBox.addEventListener('drop', (e) => {
-        e.preventDefault();
-        DOM.uploadBox.classList.remove('drag-over');
-        if (e.dataTransfer.files.length > 0) {
-            uploadFile(e.dataTransfer.files[0]);
-        }
-    });
+        DOM.uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            DOM.uploadBox.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                uploadFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+
+    if (DOM.fileInput) {
+        DOM.fileInput.addEventListener('change', handleFileSelect);
+    }
 
     // View Selector
-    DOM.viewBtns.forEach(btn => {
-        btn.addEventListener('click', () => switchView(btn.dataset.view));
-    });
+    if (DOM.viewBtns) {
+        DOM.viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.dataset.view));
+        });
+    }
 
     // Filters
-    DOM.applyFilters.addEventListener('click', applyFilters);
-    DOM.searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') applyFilters();
-    });
+    if (DOM.applyFilters) {
+        DOM.applyFilters.addEventListener('click', applyFilters);
+    }
+
+    if (DOM.searchInput) {
+        DOM.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
+    }
 
     // Pagination
-    DOM.firstPage.addEventListener('click', () => goToPage(1));
-    DOM.prevPage.addEventListener('click', () => goToPage(STATE.currentPage - 1));
-    DOM.nextPage.addEventListener('click', () => goToPage(STATE.currentPage + 1));
-    DOM.lastPage.addEventListener('click', () => goToPage(getTotalPages()));
-    DOM.pageSize.addEventListener('change', changePageSize);
+    if (DOM.firstPage) {
+        DOM.firstPage.addEventListener('click', () => goToPage(1));
+    }
+    if (DOM.prevPage) {
+        DOM.prevPage.addEventListener('click', () => goToPage(STATE.currentPage - 1));
+    }
+    if (DOM.nextPage) {
+        DOM.nextPage.addEventListener('click', () => goToPage(STATE.currentPage + 1));
+    }
+    if (DOM.lastPage) {
+        DOM.lastPage.addEventListener('click', () => goToPage(getTotalPages()));
+    }
+    if (DOM.pageSize) {
+        DOM.pageSize.addEventListener('change', changePageSize);
+    }
 
     // Close file
-    DOM.closeFileBtn.addEventListener('click', closeFile);
+    if (DOM.closeFileBtn) {
+        DOM.closeFileBtn.addEventListener('click', closeFile);
+    }
 
     // Modal
-    DOM.modalClose.addEventListener('click', () => DOM.logModal.classList.remove('show'));
-    DOM.logModal.addEventListener('click', (e) => {
-        if (e.target === DOM.logModal) DOM.logModal.classList.remove('show');
-    });
+    if (DOM.modalClose) {
+        DOM.modalClose.addEventListener('click', () => DOM.logModal.classList.remove('show'));
+    }
+    if (DOM.logModal) {
+        DOM.logModal.addEventListener('click', (e) => {
+            if (e.target === DOM.logModal) DOM.logModal.classList.remove('show');
+        });
+    }
 }
 
 function checkExistingSession() {
