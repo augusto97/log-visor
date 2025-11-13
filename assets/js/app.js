@@ -1,566 +1,885 @@
-// Global state
-let currentPage = 1;
-let currentFilters = {};
+// ============================================
+// LOG ANALYZER PRO - Main Application
+// ============================================
+
+// Global State
+const STATE = {
+    allLogs: [],
+    filteredLogs: [],
+    currentPage: 1,
+    pageSize: 50,
+    currentView: 'dashboard',
+    stats: {},
+    fileName: '',
+    tableColumns: []
+};
 
 // DOM Elements
-const uploadSection = document.getElementById('uploadSection');
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const selectFileBtn = document.getElementById('selectFileBtn');
-const uploadProgress = document.getElementById('uploadProgress');
-const progressFill = document.getElementById('progressFill');
-const uploadStatus = document.getElementById('uploadStatus');
-const mainContent = document.getElementById('mainContent');
-const fileName = document.getElementById('fileName');
-const closeFileBtn = document.getElementById('closeFileBtn');
-const stats = document.getElementById('stats');
-const logList = document.getElementById('logList');
-const loading = document.getElementById('loading');
-const noResults = document.getElementById('noResults');
-const pagination = document.getElementById('pagination');
-const pageInfo = document.getElementById('pageInfo');
-const prevPageBtn = document.getElementById('prevPageBtn');
-const nextPageBtn = document.getElementById('nextPageBtn');
-const logModal = document.getElementById('logModal');
-const modalClose = document.getElementById('modalClose');
-const logDetail = document.getElementById('logDetail');
+const DOM = {
+    // Upload
+    uploadContainer: document.getElementById('uploadContainer'),
+    uploadBox: document.getElementById('uploadBox'),
+    uploadLoading: document.getElementById('uploadLoading'),
+    fileInput: document.getElementById('fileInput'),
+    selectFileBtn: document.getElementById('selectFileBtn'),
 
-// Filters
-const levelFilter = document.getElementById('levelFilter');
-const searchFilter = document.getElementById('searchFilter');
-const startDateFilter = document.getElementById('startDateFilter');
-const endDateFilter = document.getElementById('endDateFilter');
-const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    // Top Bar
+    fileInfo: document.getElementById('fileInfo'),
+    fileNameDisplay: document.getElementById('fileNameDisplay'),
+    fileStatsDisplay: document.getElementById('fileStatsDisplay'),
+    closeFileBtn: document.getElementById('closeFileBtn'),
 
-// Initialize
+    // Main Container
+    mainContainer: document.getElementById('mainContainer'),
+
+    // View Controls
+    viewBtns: document.querySelectorAll('.view-btn'),
+    viewControls: document.getElementById('viewControls'),
+    searchInput: document.getElementById('searchInput'),
+    levelSelect: document.getElementById('levelSelect'),
+    applyFilters: document.getElementById('applyFilters'),
+
+    // Views
+    dashboardView: document.getElementById('dashboardView'),
+    tableView: document.getElementById('tableView'),
+    compactView: document.getElementById('compactView'),
+    consoleView: document.getElementById('consoleView'),
+    timelineView: document.getElementById('timelineView'),
+
+    // Dashboard Elements
+    totalLogs: document.getElementById('totalLogs'),
+    errorCount: document.getElementById('errorCount'),
+    warningCount: document.getElementById('warningCount'),
+    infoCount: document.getElementById('infoCount'),
+    levelChart: document.getElementById('levelChart'),
+    timelineChart: document.getElementById('timelineChart'),
+    insights: document.getElementById('insights'),
+    recentErrors: document.getElementById('recentErrors'),
+
+    // Table View
+    logTableHead: document.getElementById('logTableHead'),
+    logTableBody: document.getElementById('logTableBody'),
+
+    // Other Views
+    compactList: document.getElementById('compactList'),
+    consoleOutput: document.getElementById('consoleOutput'),
+    timelineContainer: document.getElementById('timelineContainer'),
+
+    // Pagination
+    paginationBar: document.getElementById('paginationBar'),
+    paginationInfo: document.getElementById('paginationInfo'),
+    firstPage: document.getElementById('firstPage'),
+    prevPage: document.getElementById('prevPage'),
+    nextPage: document.getElementById('nextPage'),
+    lastPage: document.getElementById('lastPage'),
+    pageNumbers: document.getElementById('pageNumbers'),
+    pageSize: document.getElementById('pageSize'),
+
+    // Modal
+    logModal: document.getElementById('logModal'),
+    modalClose: document.getElementById('modalClose'),
+    logDetail: document.getElementById('logDetail'),
+
+    loadingOverlay: document.getElementById('loadingOverlay')
+};
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
-    setupEventListeners();
-    checkCurrentLog();
+    initEventListeners();
+    checkExistingSession();
 });
 
-// Setup event listeners
-function setupEventListeners() {
-    // Upload - Button with event stop propagation
-    selectFileBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent event bubbling
-        fileInput.click();
+function initEventListeners() {
+    // Upload
+    DOM.selectFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOM.fileInput.click();
     });
 
-    fileInput.addEventListener('change', handleFileSelect);
-
-    // Drag and drop
-    uploadArea.addEventListener('dragover', handleDragOver);
-    uploadArea.addEventListener('dragleave', handleDragLeave);
-    uploadArea.addEventListener('drop', handleDrop);
-
-    // Click on upload area (but not on button or its children)
-    uploadArea.addEventListener('click', (e) => {
-        // Only if clicking on the area itself, not on button
+    DOM.uploadBox.addEventListener('click', (e) => {
         if (!e.target.closest('button')) {
-            fileInput.click();
+            DOM.fileInput.click();
         }
     });
 
-    // Controls
-    closeFileBtn.addEventListener('click', closeFile);
-    applyFiltersBtn.addEventListener('click', applyFilters);
-    clearFiltersBtn.addEventListener('click', clearFilters);
+    DOM.fileInput.addEventListener('change', handleFileSelect);
 
-    // Pagination
-    prevPageBtn.addEventListener('click', () => loadPage(currentPage - 1));
-    nextPageBtn.addEventListener('click', () => loadPage(currentPage + 1));
-
-    // Modal
-    modalClose.addEventListener('click', closeModal);
-    logModal.addEventListener('click', (e) => {
-        if (e.target === logModal) closeModal();
+    // Drag & Drop
+    DOM.uploadBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        DOM.uploadBox.classList.add('drag-over');
     });
 
-    // Enter key on search
-    searchFilter.addEventListener('keypress', (e) => {
+    DOM.uploadBox.addEventListener('dragleave', () => {
+        DOM.uploadBox.classList.remove('drag-over');
+    });
+
+    DOM.uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        DOM.uploadBox.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            uploadFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // View Selector
+    DOM.viewBtns.forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+
+    // Filters
+    DOM.applyFilters.addEventListener('click', applyFilters);
+    DOM.searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') applyFilters();
+    });
+
+    // Pagination
+    DOM.firstPage.addEventListener('click', () => goToPage(1));
+    DOM.prevPage.addEventListener('click', () => goToPage(STATE.currentPage - 1));
+    DOM.nextPage.addEventListener('click', () => goToPage(STATE.currentPage + 1));
+    DOM.lastPage.addEventListener('click', () => goToPage(getTotalPages()));
+    DOM.pageSize.addEventListener('change', changePageSize);
+
+    // Close file
+    DOM.closeFileBtn.addEventListener('click', closeFile);
+
+    // Modal
+    DOM.modalClose.addEventListener('click', () => DOM.logModal.classList.remove('show'));
+    DOM.logModal.addEventListener('click', (e) => {
+        if (e.target === DOM.logModal) DOM.logModal.classList.remove('show');
     });
 }
 
-// Check if there's a current log file
-function checkCurrentLog() {
+function checkExistingSession() {
     fetch('api.php?action=list')
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data.current_log) {
+                STATE.fileName = data.data.current_log;
                 loadLogs();
             }
         })
-        .catch(error => console.error('Error checking current log:', error));
+        .catch(console.error);
 }
 
-// Drag and drop handlers
-function handleDragOver(e) {
-    e.preventDefault();
-    uploadArea.classList.add('drag-over');
-}
+// ============================================
+// FILE UPLOAD
+// ============================================
 
-function handleDragLeave(e) {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        uploadFile(files[0]);
-    }
-}
-
-// File selection handler
 function handleFileSelect(e) {
-    const files = e.target.files;
-    if (files.length > 0) {
-        uploadFile(files[0]);
+    if (e.target.files.length > 0) {
+        uploadFile(e.target.files[0]);
     }
 }
 
-// Upload file
 function uploadFile(file) {
-    // Validate file size only on client side
-    // Content validation will be done on server side
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-        alert('El archivo es demasiado grande. Máximo 50MB');
+        alert('Archivo demasiado grande. Máximo 50MB');
         return;
     }
 
-    // Warn about file size = 0
     if (file.size === 0) {
         alert('El archivo está vacío');
         return;
     }
 
-    // Show progress
-    uploadProgress.style.display = 'block';
-    uploadArea.style.display = 'none';
-    progressFill.style.width = '0%';
+    DOM.uploadBox.classList.add('hidden');
+    DOM.uploadLoading.classList.remove('hidden');
 
     const formData = new FormData();
     formData.append('logfile', file);
 
-    // Upload with progress
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            progressFill.style.width = percentComplete + '%';
-            uploadStatus.textContent = `Subiendo archivo... ${Math.round(percentComplete)}%`;
-        }
-    });
-
-    xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
-
-            if (response.success) {
-                uploadStatus.textContent = 'Archivo subido correctamente. Procesando...';
-                progressFill.style.width = '100%';
-
-                setTimeout(() => {
-                    loadLogs();
-                }, 500);
-            } else {
-                alert('Error: ' + response.message);
-                resetUpload();
-            }
+    fetch('upload.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            STATE.fileName = data.file.original_name;
+            loadLogs();
         } else {
-            alert('Error al subir el archivo');
+            alert('Error: ' + data.message);
             resetUpload();
         }
-    });
-
-    xhr.addEventListener('error', () => {
-        alert('Error de conexión al subir el archivo');
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
         resetUpload();
     });
-
-    xhr.open('POST', 'upload.php');
-    xhr.send(formData);
 }
 
-// Reset upload area
 function resetUpload() {
-    uploadProgress.style.display = 'none';
-    uploadArea.style.display = 'block';
-    fileInput.value = '';
+    DOM.uploadBox.classList.remove('hidden');
+    DOM.uploadLoading.classList.add('hidden');
+    DOM.fileInput.value = '';
 }
 
-// Load logs
-function loadLogs() {
-    showLoading();
+// ============================================
+// LOAD LOGS
+// ============================================
 
-    fetch('api.php?action=parse&page=' + currentPage)
+function loadLogs() {
+    DOM.loadingOverlay.classList.remove('hidden');
+
+    fetch('api.php?action=parse&page=1&per_page=1000')
         .then(response => response.json())
         .then(data => {
-            hideLoading();
-
             if (data.success) {
-                displayLogs(data.data);
-                uploadSection.style.display = 'none';
-                mainContent.style.display = 'block';
+                STATE.allLogs = data.data.entries;
+                STATE.filteredLogs = [...STATE.allLogs];
+                STATE.stats = data.data.stats;
+                STATE.currentPage = 1;
+
+                // Show main container
+                DOM.uploadContainer.classList.add('hidden');
+                DOM.mainContainer.classList.remove('hidden');
+                DOM.fileInfo.classList.remove('hidden');
+                DOM.closeFileBtn.classList.remove('hidden');
+
+                // Update file info
+                DOM.fileNameDisplay.textContent = STATE.fileName;
+                updateTopBarStats();
+
+                // Detect columns
+                detectColumns();
+
+                // Render current view
+                renderCurrentView();
+
+                DOM.loadingOverlay.classList.add('hidden');
             } else {
                 alert('Error: ' + data.message);
+                resetUpload();
+                DOM.loadingOverlay.classList.add('hidden');
             }
         })
         .catch(error => {
-            hideLoading();
-            alert('Error al cargar los logs: ' + error.message);
+            alert('Error: ' + error.message);
+            resetUpload();
+            DOM.loadingOverlay.classList.add('hidden');
         });
 }
 
-// Apply filters
-function applyFilters() {
-    currentPage = 1;
-    currentFilters = {
-        level: levelFilter.value,
-        search: searchFilter.value,
-        start_date: startDateFilter.value ? startDateFilter.value.replace('T', ' ') + ':00' : null,
-        end_date: endDateFilter.value ? endDateFilter.value.replace('T', ' ') + ':00' : null
+function detectColumns() {
+    const columns = ['line', 'timestamp', 'level'];
+    const contextKeys = new Set();
+
+    STATE.allLogs.slice(0, 50).forEach(log => {
+        if (log.context) {
+            Object.keys(log.context).forEach(key => contextKeys.add(key));
+        }
+    });
+
+    const columnOrder = ['module', 'error_code', 'pid', 'client', 'ip', 'status'];
+    columnOrder.forEach(col => {
+        if (contextKeys.has(col)) columns.push(col);
+    });
+
+    columns.push('message');
+    STATE.tableColumns = columns;
+}
+
+// ============================================
+// VIEW MANAGEMENT
+// ============================================
+
+function switchView(viewName) {
+    STATE.currentView = viewName;
+
+    // Update active button
+    DOM.viewBtns.forEach(btn => {
+        if (btn.dataset.view === viewName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Show/hide view controls
+    if (viewName === 'dashboard') {
+        DOM.viewControls.classList.add('hidden');
+        DOM.paginationBar.classList.add('hidden');
+    } else {
+        DOM.viewControls.classList.remove('hidden');
+        DOM.paginationBar.classList.remove('hidden');
+    }
+
+    // Hide all views
+    document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
+
+    // Show selected view
+    const viewMap = {
+        dashboard: DOM.dashboardView,
+        table: DOM.tableView,
+        compact: DOM.compactView,
+        console: DOM.consoleView,
+        timeline: DOM.timelineView
     };
 
-    loadFilteredLogs();
+    viewMap[viewName].classList.remove('hidden');
+
+    // Render view
+    renderCurrentView();
 }
 
-// Clear filters
-function clearFilters() {
-    levelFilter.value = 'ALL';
-    searchFilter.value = '';
-    startDateFilter.value = '';
-    endDateFilter.value = '';
-    currentFilters = {};
-    currentPage = 1;
-    loadLogs();
+function renderCurrentView() {
+    switch (STATE.currentView) {
+        case 'dashboard':
+            renderDashboard();
+            break;
+        case 'table':
+            renderTableView();
+            updatePagination();
+            break;
+        case 'compact':
+            renderCompactView();
+            updatePagination();
+            break;
+        case 'console':
+            renderConsoleView();
+            updatePagination();
+            break;
+        case 'timeline':
+            renderTimelineView();
+            updatePagination();
+            break;
+    }
 }
 
-// Load filtered logs
-function loadFilteredLogs() {
-    showLoading();
+// ============================================
+// TOP BAR STATS
+// ============================================
 
-    const params = new URLSearchParams({
-        action: 'filter',
-        page: currentPage,
-        level: currentFilters.level || 'ALL',
-        search: currentFilters.search || '',
-        start_date: currentFilters.start_date || '',
-        end_date: currentFilters.end_date || ''
-    });
+function updateTopBarStats() {
+    const badges = [];
+    const total = STATE.allLogs.length;
+    badges.push(`<span class="stat-badge">${total} líneas</span>`);
 
-    fetch('api.php?' + params.toString())
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-
-            if (data.success) {
-                displayLogs(data.data);
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            alert('Error al filtrar los logs: ' + error.message);
-        });
-}
-
-// Display logs
-function displayLogs(data) {
-    console.log('Displaying logs with data:', data);
-
-    // Update file name
-    fileName.textContent = data.file_name;
-
-    // Update statistics
-    displayStats(data.stats, data.total_lines, data.filtered_lines);
-
-    // Display log entries
-    if (data.entries.length === 0) {
-        logList.innerHTML = '';
-        noResults.style.display = 'block';
-        pagination.style.display = 'none';
-        return;
+    if (STATE.stats.ERROR) {
+        badges.push(`<span class="stat-badge error">${STATE.stats.ERROR} errores</span>`);
+    }
+    if (STATE.stats.WARNING) {
+        badges.push(`<span class="stat-badge warning">${STATE.stats.WARNING} warnings</span>`);
+    }
+    if (STATE.stats.CRITICAL) {
+        badges.push(`<span class="stat-badge error">${STATE.stats.CRITICAL} críticos</span>`);
     }
 
-    noResults.style.display = 'none';
-
-    logList.innerHTML = '';
-    data.entries.forEach((entry, index) => {
-        console.log(`Entry ${index}:`, entry);
-        const entryElement = createLogEntry(entry);
-        logList.appendChild(entryElement);
-    });
-
-    // Update pagination
-    updatePagination(data.pagination);
+    DOM.fileStatsDisplay.innerHTML = badges.join('');
 }
 
-// Create log entry element
-function createLogEntry(entry) {
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    div.onclick = () => showLogDetail(entry);
+// ============================================
+// FILTERS
+// ============================================
 
-    const lineDiv = document.createElement('div');
-    lineDiv.className = 'log-line';
-    lineDiv.textContent = '#' + entry.line_number;
+function applyFilters() {
+    const search = DOM.searchInput.value.toLowerCase();
+    const level = DOM.levelSelect.value;
 
-    const timestampDiv = document.createElement('div');
-    timestampDiv.className = 'log-timestamp';
-    timestampDiv.textContent = entry.timestamp || '-';
-
-    const levelDiv = document.createElement('div');
-    const levelSpan = document.createElement('span');
-    levelSpan.className = 'log-level ' + entry.level.toLowerCase();
-    levelSpan.textContent = entry.level;
-    levelDiv.appendChild(levelSpan);
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'log-message';
-    messageDiv.textContent = truncateMessage(entry.message, 150);
-
-    div.appendChild(lineDiv);
-    div.appendChild(timestampDiv);
-    div.appendChild(levelDiv);
-    div.appendChild(messageDiv);
-
-    return div;
-}
-
-// Truncate message
-function truncateMessage(message, maxLength) {
-    if (message.length <= maxLength) return message;
-    return message.substring(0, maxLength) + '...';
-}
-
-// Display statistics
-function displayStats(statsData, totalLines, filteredLines) {
-    stats.innerHTML = '';
-
-    // Total lines stat
-    const totalStat = document.createElement('div');
-    totalStat.className = 'stat-item info';
-    totalStat.innerHTML = `
-        <span class="stat-count">${totalLines}</span>
-        <span class="stat-label">Total Líneas</span>
-    `;
-    stats.appendChild(totalStat);
-
-    // Filtered lines (if filtered)
-    if (filteredLines !== undefined && filteredLines !== totalLines) {
-        const filteredStat = document.createElement('div');
-        filteredStat.className = 'stat-item info';
-        filteredStat.innerHTML = `
-            <span class="stat-count">${filteredLines}</span>
-            <span class="stat-label">Filtradas</span>
-        `;
-        stats.appendChild(filteredStat);
-    }
-
-    // Level stats
-    const levelOrder = ['ERROR', 'CRITICAL', 'WARNING', 'INFO', 'DEBUG', 'NOTICE', 'ACCESS'];
-
-    levelOrder.forEach(level => {
-        if (statsData[level]) {
-            const statItem = document.createElement('div');
-            statItem.className = 'stat-item ' + level.toLowerCase();
-            statItem.innerHTML = `
-                <span class="stat-count">${statsData[level]}</span>
-                <span class="stat-label">${level}</span>
-            `;
-            stats.appendChild(statItem);
+    STATE.filteredLogs = STATE.allLogs.filter(log => {
+        // Search filter
+        if (search && !log.message.toLowerCase().includes(search) && !log.raw.toLowerCase().includes(search)) {
+            return false;
         }
+
+        // Level filter
+        if (level !== 'ALL' && log.level !== level) {
+            return false;
+        }
+
+        return true;
     });
+
+    STATE.currentPage = 1;
+    renderCurrentView();
 }
 
-// Update pagination
-function updatePagination(paginationData) {
-    if (paginationData.total_pages <= 1) {
-        pagination.style.display = 'none';
-        return;
-    }
+// ============================================
+// PAGINATION
+// ============================================
 
-    pagination.style.display = 'flex';
-    pageInfo.textContent = `Página ${paginationData.current_page} de ${paginationData.total_pages}`;
-
-    prevPageBtn.disabled = !paginationData.has_prev;
-    nextPageBtn.disabled = !paginationData.has_next;
+function getTotalPages() {
+    return Math.ceil(STATE.filteredLogs.length / STATE.pageSize);
 }
 
-// Load page
-function loadPage(page) {
-    currentPage = page;
+function getCurrentPageLogs() {
+    const start = (STATE.currentPage - 1) * STATE.pageSize;
+    const end = start + STATE.pageSize;
+    return STATE.filteredLogs.slice(start, end);
+}
 
-    if (Object.keys(currentFilters).length > 0) {
-        loadFilteredLogs();
+function goToPage(page) {
+    const totalPages = getTotalPages();
+    if (page < 1 || page > totalPages) return;
+
+    STATE.currentPage = page;
+    renderCurrentView();
+}
+
+function changePageSize() {
+    STATE.pageSize = parseInt(DOM.pageSize.value);
+    STATE.currentPage = 1;
+    renderCurrentView();
+}
+
+function updatePagination() {
+    const total = STATE.filteredLogs.length;
+    const totalPages = getTotalPages();
+    const start = (STATE.currentPage - 1) * STATE.pageSize + 1;
+    const end = Math.min(STATE.currentPage * STATE.pageSize, total);
+
+    DOM.paginationInfo.textContent = `Mostrando ${start}-${end} de ${total}`;
+
+    // Update buttons
+    DOM.firstPage.disabled = STATE.currentPage === 1;
+    DOM.prevPage.disabled = STATE.currentPage === 1;
+    DOM.nextPage.disabled = STATE.currentPage === totalPages;
+    DOM.lastPage.disabled = STATE.currentPage === totalPages;
+
+    // Update page numbers
+    renderPageNumbers(totalPages);
+}
+
+function renderPageNumbers(totalPages) {
+    const current = STATE.currentPage;
+    const maxVisible = 5;
+    let pages = [];
+
+    if (totalPages <= maxVisible) {
+        pages = Array.from({length: totalPages}, (_, i) => i + 1);
     } else {
-        loadLogs();
-    }
-}
-
-// Show log detail in modal
-function showLogDetail(entry) {
-    let detailHTML = `
-        <div style="display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-bottom: 20px;">
-            <div><strong>Línea:</strong></div>
-            <div>#${entry.line_number}</div>
-
-            <div><strong>Timestamp:</strong></div>
-            <div>${entry.timestamp || 'N/A'}</div>
-
-            <div><strong>Nivel:</strong></div>
-            <div><span class="log-level ${entry.level.toLowerCase()}">${entry.level}</span></div>
-    `;
-
-    // Add context information if available
-    if (entry.context && Object.keys(entry.context).length > 0) {
-        if (entry.context.module) {
-            detailHTML += `
-                <div><strong>Módulo:</strong></div>
-                <div>${escapeHtml(entry.context.module)}</div>
-            `;
-        }
-        if (entry.context.error_code) {
-            detailHTML += `
-                <div><strong>Código Error:</strong></div>
-                <div><code>${escapeHtml(entry.context.error_code)}</code></div>
-            `;
-        }
-        if (entry.context.pid) {
-            detailHTML += `
-                <div><strong>PID:</strong></div>
-                <div><code>${escapeHtml(entry.context.pid)}</code></div>
-            `;
-        }
-        if (entry.context.client) {
-            detailHTML += `
-                <div><strong>Cliente:</strong></div>
-                <div><code>${escapeHtml(entry.context.client)}</code></div>
-            `;
-        }
-        if (entry.context.ip) {
-            detailHTML += `
-                <div><strong>IP:</strong></div>
-                <div><code>${escapeHtml(entry.context.ip)}</code></div>
-            `;
-        }
-        if (entry.context.status) {
-            detailHTML += `
-                <div><strong>Status HTTP:</strong></div>
-                <div><span style="font-weight: bold; color: ${entry.context.status >= 400 ? '#e74c3c' : '#27ae60'}">${entry.context.status}</span></div>
-            `;
+        if (current <= 3) {
+            pages = [1, 2, 3, 4, '...', totalPages];
+        } else if (current >= totalPages - 2) {
+            pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } else {
+            pages = [1, '...', current - 1, current, current + 1, '...', totalPages];
         }
     }
 
-    detailHTML += `</div>`;
-
-    detailHTML += `
-        <div style="margin-bottom: 15px;">
-            <strong>Mensaje:</strong>
-            <div style="background: #f5f7fa; padding: 15px; border-radius: 6px; margin-top: 10px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word;">
-                ${escapeHtml(entry.message)}
-            </div>
-        </div>
-    `;
-
-    // Show full context as JSON if there are additional fields
-    const displayedKeys = ['module', 'error_code', 'pid', 'client', 'ip', 'status'];
-    const remainingContext = {};
-    if (entry.context) {
-        Object.keys(entry.context).forEach(key => {
-            if (!displayedKeys.includes(key)) {
-                remainingContext[key] = entry.context[key];
-            }
-        });
-    }
-
-    if (Object.keys(remainingContext).length > 0) {
-        detailHTML += `
-            <div style="margin-bottom: 15px;">
-                <strong>Información Adicional:</strong>
-                <pre style="background: #f5f7fa; padding: 15px; border-radius: 6px; margin-top: 10px; overflow-x: auto;">${JSON.stringify(remainingContext, null, 2)}</pre>
-            </div>
-        `;
-    }
-
-    detailHTML += `
-        <div>
-            <strong>Línea Completa del Log:</strong>
-            <div style="background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; margin-top: 10px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; font-size: 0.9em;">
-                ${escapeHtml(entry.raw)}
-            </div>
-        </div>
-    `;
-
-    logDetail.innerHTML = detailHTML;
-    logModal.classList.add('show');
+    DOM.pageNumbers.innerHTML = pages.map(page => {
+        if (page === '...') {
+            return '<span class="page-ellipsis">...</span>';
+        }
+        return `<button class="page-num ${page === current ? 'active' : ''}" onclick="goToPage(${page})">${page}</button>`;
+    }).join('');
 }
 
-// Close modal
-function closeModal() {
-    logModal.classList.remove('show');
+// ============================================
+// UTILITIES
+// ============================================
+
+function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
 }
 
-// Close file
-function closeFile() {
-    if (!confirm('¿Estás seguro de que quieres cerrar este archivo?')) {
-        return;
-    }
-
-    fetch('api.php?action=delete')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                mainContent.style.display = 'none';
-                uploadSection.style.display = 'block';
-                resetUpload();
-                currentPage = 1;
-                currentFilters = {};
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('Error al cerrar el archivo: ' + error.message);
-        });
-}
-
-// Show loading
-function showLoading() {
-    loading.style.display = 'block';
-    logList.style.display = 'none';
-    noResults.style.display = 'none';
-}
-
-// Hide loading
-function hideLoading() {
-    loading.style.display = 'none';
-    logList.style.display = 'block';
-}
-
-// Escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Format file size
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+function showLogDetail(log) {
+    let html = '<div class="detail-grid">';
 
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    html += `
+        <div class="detail-label">Línea:</div>
+        <div class="detail-value">#${log.line_number}</div>
+        <div class="detail-label">Timestamp:</div>
+        <div class="detail-value">${log.timestamp || 'N/A'}</div>
+        <div class="detail-label">Nivel:</div>
+        <div class="detail-value"><span class="level-badge ${log.level.toLowerCase()}">${log.level}</span></div>
+    `;
 
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    if (log.context) {
+        Object.keys(log.context).forEach(key => {
+            html += `
+                <div class="detail-label">${key}:</div>
+                <div class="detail-value"><code>${escapeHtml(log.context[key])}</code></div>
+            `;
+        });
+    }
+
+    html += '</div>';
+
+    html += `
+        <div style="margin-bottom: 20px;">
+            <strong style="color: var(--text-secondary); font-size: 0.85rem;">MENSAJE:</strong>
+            <div class="message-box">${escapeHtml(log.message)}</div>
+        </div>
+        <div>
+            <strong style="color: var(--text-secondary); font-size: 0.85rem;">LÍNEA COMPLETA:</strong>
+            <div class="raw-line">${escapeHtml(log.raw)}</div>
+        </div>
+    `;
+
+    DOM.logDetail.innerHTML = html;
+    DOM.logModal.classList.add('show');
+}
+
+function closeFile() {
+    if (!confirm('¿Cerrar archivo actual?')) return;
+
+    fetch('api.php?action=delete')
+        .then(() => {
+            location.reload();
+        });
+}
+
+// ============================================
+// RENDER FUNCTIONS
+// ============================================
+
+function renderDashboard() {
+    // Update stats cards
+    DOM.totalLogs.textContent = STATE.allLogs.length;
+    DOM.errorCount.textContent = STATE.stats.ERROR || 0;
+    DOM.warningCount.textContent = STATE.stats.WARNING || 0;
+    DOM.infoCount.textContent = STATE.stats.INFO || 0;
+
+    // Render level distribution chart
+    renderLevelChart();
+
+    // Render timeline chart
+    renderTimelineChart();
+
+    // Generate intelligent insights
+    renderInsights();
+
+    // Show recent errors
+    renderRecentErrors();
+}
+
+function renderLevelChart() {
+    const levels = ['ERROR', 'CRITICAL', 'WARNING', 'INFO', 'DEBUG', 'NOTICE'];
+    const total = STATE.allLogs.length;
+
+    let html = '<div class="bar-chart">';
+
+    levels.forEach(level => {
+        const count = STATE.stats[level] || 0;
+        const percentage = total > 0 ? (count / total * 100) : 0;
+
+        if (count > 0) {
+            html += `
+                <div class="bar-item">
+                    <div class="bar-label">${level}</div>
+                    <div class="bar-track">
+                        <div class="bar-fill ${level.toLowerCase()}" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="bar-value">${count} (${percentage.toFixed(1)}%)</div>
+                </div>
+            `;
+        }
+    });
+
+    html += '</div>';
+    DOM.levelChart.innerHTML = html;
+}
+
+function renderTimelineChart() {
+    // Group logs by hour
+    const timeGroups = {};
+
+    STATE.allLogs.forEach(log => {
+        if (log.timestamp) {
+            const hour = log.timestamp.substring(0, 13); // YYYY-MM-DD HH
+            if (!timeGroups[hour]) {
+                timeGroups[hour] = {total: 0, errors: 0};
+            }
+            timeGroups[hour].total++;
+            if (log.level === 'ERROR' || log.level === 'CRITICAL') {
+                timeGroups[hour].errors++;
+            }
+        }
+    });
+
+    const hours = Object.keys(timeGroups).sort();
+
+    if (hours.length === 0) {
+        DOM.timelineChart.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No hay datos de timestamp disponibles</p>';
+        return;
+    }
+
+    const maxCount = Math.max(...hours.map(h => timeGroups[h].total));
+
+    let html = '<div class="sparkline">';
+
+    hours.slice(-24).forEach(hour => {
+        const data = timeGroups[hour];
+        const height = (data.total / maxCount * 100);
+        const errorPercent = data.total > 0 ? (data.errors / data.total * 100) : 0;
+        const displayHour = hour.substring(11, 13) + ':00';
+
+        html += `
+            <div class="spark-bar" title="${hour}: ${data.total} logs, ${data.errors} errores">
+                <div class="spark-fill ${errorPercent > 50 ? 'error' : errorPercent > 20 ? 'warning' : 'info'}" style="height: ${height}%"></div>
+                <div class="spark-label">${displayHour}</div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    DOM.timelineChart.innerHTML = html;
+}
+
+function renderInsights() {
+    const insights = [];
+
+    // Error rate analysis
+    const errorCount = (STATE.stats.ERROR || 0) + (STATE.stats.CRITICAL || 0);
+    const errorRate = (errorCount / STATE.allLogs.length * 100).toFixed(1);
+
+    if (errorRate > 10) {
+        insights.push({
+            type: 'error',
+            icon: '🔴',
+            message: `Tasa de errores alta: ${errorRate}% (${errorCount} de ${STATE.allLogs.length})`
+        });
+    } else if (errorRate > 5) {
+        insights.push({
+            type: 'warning',
+            icon: '🟡',
+            message: `Tasa de errores moderada: ${errorRate}% (${errorCount} de ${STATE.allLogs.length})`
+        });
+    } else if (errorCount > 0) {
+        insights.push({
+            type: 'info',
+            icon: '🟢',
+            message: `Tasa de errores baja: ${errorRate}% (${errorCount} de ${STATE.allLogs.length})`
+        });
+    }
+
+    // Find most common error codes
+    const errorCodes = {};
+    STATE.allLogs.forEach(log => {
+        if (log.context && log.context.error_code) {
+            errorCodes[log.context.error_code] = (errorCodes[log.context.error_code] || 0) + 1;
+        }
+    });
+
+    const sortedCodes = Object.entries(errorCodes).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (sortedCodes.length > 0) {
+        insights.push({
+            type: 'info',
+            icon: '📋',
+            message: `Códigos de error más comunes: ${sortedCodes.map(([code, count]) => `${code} (${count}x)`).join(', ')}`
+        });
+    }
+
+    // Find suspicious IPs (more than 10 errors)
+    const ipErrors = {};
+    STATE.allLogs.forEach(log => {
+        if ((log.level === 'ERROR' || log.level === 'CRITICAL') && log.context && log.context.ip) {
+            ipErrors[log.context.ip] = (ipErrors[log.context.ip] || 0) + 1;
+        }
+    });
+
+    const suspiciousIPs = Object.entries(ipErrors).filter(([ip, count]) => count > 10);
+    if (suspiciousIPs.length > 0) {
+        insights.push({
+            type: 'warning',
+            icon: '⚠️',
+            message: `IPs con múltiples errores: ${suspiciousIPs.slice(0, 3).map(([ip, count]) => `${ip} (${count}x)`).join(', ')}`
+        });
+    }
+
+    // Render insights
+    let html = '';
+    if (insights.length === 0) {
+        html = '<div class="insight-item info"><span class="insight-icon">✅</span> No se detectaron problemas importantes</div>';
+    } else {
+        insights.forEach(insight => {
+            html += `<div class="insight-item ${insight.type}"><span class="insight-icon">${insight.icon}</span> ${insight.message}</div>`;
+        });
+    }
+
+    DOM.insights.innerHTML = html;
+}
+
+function renderRecentErrors() {
+    const recentErrors = STATE.allLogs
+        .filter(log => log.level === 'ERROR' || log.level === 'CRITICAL')
+        .slice(0, 10);
+
+    if (recentErrors.length === 0) {
+        DOM.recentErrors.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No hay errores para mostrar</p>';
+        return;
+    }
+
+    let html = '<div class="recent-list">';
+    recentErrors.forEach(log => {
+        html += `
+            <div class="recent-item" onclick="showLogDetail(STATE.allLogs[${log.line_number - 1}])">
+                <div class="recent-header">
+                    <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
+                    <span class="recent-time">${log.timestamp || 'Sin timestamp'}</span>
+                    <span class="recent-line">#${log.line_number}</span>
+                </div>
+                <div class="recent-message">${escapeHtml(truncate(log.message, 120))}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    DOM.recentErrors.innerHTML = html;
+}
+
+function renderTableView() {
+    // Render table header
+    let headerHtml = '<tr>';
+    STATE.tableColumns.forEach(col => {
+        const label = col.charAt(0).toUpperCase() + col.slice(1).replace('_', ' ');
+        headerHtml += `<th>${label}</th>`;
+    });
+    headerHtml += '</tr>';
+    DOM.logTableHead.innerHTML = headerHtml;
+
+    // Render table body
+    const pageLogs = getCurrentPageLogs();
+    let bodyHtml = '';
+
+    pageLogs.forEach(log => {
+        bodyHtml += '<tr onclick="showLogDetail(STATE.allLogs[' + (log.line_number - 1) + '])">';
+
+        STATE.tableColumns.forEach(col => {
+            let value = '';
+
+            if (col === 'line') {
+                value = `<span class="line-num">#${log.line_number}</span>`;
+            } else if (col === 'timestamp') {
+                value = `<span class="timestamp">${log.timestamp || '-'}</span>`;
+            } else if (col === 'level') {
+                value = `<span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>`;
+            } else if (col === 'message') {
+                value = `<span class="message-text">${escapeHtml(truncate(log.message, 100))}</span>`;
+            } else if (log.context && log.context[col]) {
+                value = `<code class="context-value">${escapeHtml(log.context[col])}</code>`;
+            } else {
+                value = '<span style="color: var(--text-muted);">-</span>';
+            }
+
+            bodyHtml += `<td>${value}</td>`;
+        });
+
+        bodyHtml += '</tr>';
+    });
+
+    DOM.logTableBody.innerHTML = bodyHtml;
+}
+
+function renderCompactView() {
+    const pageLogs = getCurrentPageLogs();
+    let html = '';
+
+    pageLogs.forEach(log => {
+        html += `
+            <div class="compact-item" onclick="showLogDetail(STATE.allLogs[${log.line_number - 1}])">
+                <div class="compact-header">
+                    <span class="compact-line">#${log.line_number}</span>
+                    <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
+                    <span class="compact-time">${log.timestamp || 'Sin timestamp'}</span>
+                </div>
+                <div class="compact-message">${escapeHtml(log.message)}</div>
+                ${log.context && Object.keys(log.context).length > 0 ? `
+                    <div class="compact-meta">
+                        ${Object.entries(log.context).slice(0, 3).map(([key, val]) =>
+                            `<span class="meta-tag">${key}: <code>${escapeHtml(val)}</code></span>`
+                        ).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    DOM.compactList.innerHTML = html;
+}
+
+function renderConsoleView() {
+    const pageLogs = getCurrentPageLogs();
+    let html = '<div class="console-lines">';
+
+    pageLogs.forEach(log => {
+        const levelColor = {
+            'ERROR': 'var(--error)',
+            'CRITICAL': 'var(--error)',
+            'WARNING': 'var(--warning)',
+            'INFO': 'var(--info)',
+            'DEBUG': 'var(--muted)',
+            'NOTICE': 'var(--accent-purple)'
+        }[log.level] || 'var(--text-primary)';
+
+        html += `
+            <div class="console-line" onclick="showLogDetail(STATE.allLogs[${log.line_number - 1}])">
+                <span class="console-num">${String(log.line_number).padStart(5, ' ')}</span>
+                <span class="console-time">${log.timestamp || '                   '}</span>
+                <span class="console-level" style="color: ${levelColor}">[${log.level.padEnd(8, ' ')}]</span>
+                <span class="console-msg">${escapeHtml(log.message)}</span>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    DOM.consoleOutput.innerHTML = html;
+}
+
+function renderTimelineView() {
+    const pageLogs = getCurrentPageLogs();
+
+    // Group by date
+    const dateGroups = {};
+    pageLogs.forEach(log => {
+        const date = log.timestamp ? log.timestamp.substring(0, 10) : 'Sin fecha';
+        if (!dateGroups[date]) {
+            dateGroups[date] = [];
+        }
+        dateGroups[date].push(log);
+    });
+
+    let html = '';
+
+    Object.keys(dateGroups).sort().reverse().forEach(date => {
+        html += `
+            <div class="timeline-group">
+                <div class="timeline-date">📅 ${date}</div>
+                <div class="timeline-items">
+        `;
+
+        dateGroups[date].forEach(log => {
+            const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
+            html += `
+                <div class="timeline-item ${log.level.toLowerCase()}" onclick="showLogDetail(STATE.allLogs[${log.line_number - 1}])">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <span class="timeline-time">${time}</span>
+                            <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
+                            <span class="timeline-line">#${log.line_number}</span>
+                        </div>
+                        <div class="timeline-message">${escapeHtml(truncate(log.message, 150))}</div>
+                        ${log.context && Object.keys(log.context).length > 0 ? `
+                            <div class="timeline-meta">
+                                ${Object.entries(log.context).slice(0, 3).map(([key, val]) =>
+                                    `<span class="meta-tag">${key}: <code>${escapeHtml(String(val))}</code></span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    DOM.timelineContainer.innerHTML = html;
 }
