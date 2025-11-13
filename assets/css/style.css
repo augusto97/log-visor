@@ -10,8 +10,16 @@
     --accent-yellow: #f9e2af;
     --accent-red: #f38ba8;
     --accent-orange: #fab387;
+    --accent-purple: #cba6f7;
     --border: #45475a;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+
+    /* Semantic colors */
+    --error: #f38ba8;
+    --warning: #fab387;
+    --info: #89b4fa;
+    --success: #a6e3a1;
+    --muted: #6c7086;
 }
 
 * {

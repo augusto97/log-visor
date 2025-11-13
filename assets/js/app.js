@@ -240,6 +240,7 @@ function loadLogs() {
                 DOM.mainContainer.classList.remove('hidden');
                 DOM.fileInfo.classList.remove('hidden');
                 DOM.closeFileBtn.classList.remove('hidden');
+                DOM.viewControls.classList.remove('hidden');
 
                 // Update file info
                 DOM.fileNameDisplay.textContent = STATE.fileName;
@@ -334,18 +335,22 @@ function renderCurrentView() {
             break;
         case 'table':
             renderTableView();
+            DOM.paginationBar.classList.remove('hidden');
             updatePagination();
             break;
         case 'compact':
             renderCompactView();
+            DOM.paginationBar.classList.remove('hidden');
             updatePagination();
             break;
         case 'console':
             renderConsoleView();
+            DOM.paginationBar.classList.remove('hidden');
             updatePagination();
             break;
         case 'timeline':
             renderTimelineView();
+            DOM.paginationBar.classList.remove('hidden');
             updatePagination();
             break;
     }
@@ -480,8 +485,9 @@ function truncate(str, len) {
 }
 
 function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = String(text);
     return div.innerHTML;
 }
 
@@ -528,7 +534,25 @@ function closeFile() {
 
     fetch('api.php?action=delete')
         .then(() => {
-            location.reload();
+            // Reset state
+            STATE.allLogs = [];
+            STATE.filteredLogs = [];
+            STATE.currentPage = 1;
+            STATE.fileName = '';
+
+            // Hide main container
+            DOM.mainContainer.classList.add('hidden');
+            DOM.fileInfo.classList.add('hidden');
+            DOM.closeFileBtn.classList.add('hidden');
+            DOM.viewControls.classList.add('hidden');
+
+            // Show upload container
+            DOM.uploadContainer.classList.remove('hidden');
+            DOM.uploadBox.classList.remove('hidden');
+            DOM.uploadLoading.classList.add('hidden');
+        })
+        .catch(error => {
+            console.error('Error closing file:', error);
         });
 }
 
@@ -554,6 +578,9 @@ function renderDashboard() {
 
     // Show recent errors
     renderRecentErrors();
+
+    // Hide pagination for dashboard view
+    DOM.paginationBar.classList.add('hidden');
 }
 
 function renderLevelChart() {
@@ -883,3 +910,10 @@ function renderTimelineView() {
 
     DOM.timelineContainer.innerHTML = html;
 }
+
+// ============================================
+// EXPOSE FUNCTIONS TO GLOBAL SCOPE
+// ============================================
+// These functions need to be accessible from onclick handlers in generated HTML
+window.showLogDetail = showLogDetail;
+window.goToPage = goToPage;
