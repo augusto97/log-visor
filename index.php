@@ -22,8 +22,8 @@ session_start();
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📁</div>
                 <h3>Arrastra un archivo aquí o haz clic para seleccionar</h3>
-                <p>Formatos soportados: .log, .txt (máx. 50MB)</p>
-                <input type="file" id="fileInput" accept=".log,.txt" hidden>
+                <p>Cualquier archivo de texto plano (máx. 50MB)</p>
+                <input type="file" id="fileInput" hidden>
                 <button class="btn btn-primary" id="selectFileBtn">Seleccionar Archivo</button>
             </div>
 

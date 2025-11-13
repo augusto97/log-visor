@@ -1,0 +1,7 @@
+[2025-11-13 10:00:00] Application started
+[2025-11-13 10:00:01] INFO: Loading configuration from config.ini
+[2025-11-13 10:00:02] INFO: Connecting to database at localhost:3306
+[2025-11-13 10:00:03] ERROR: Connection failed - retrying in 5 seconds
+[2025-11-13 10:00:08] INFO: Connection established successfully
+[2025-11-13 10:00:09] WARNING: Cache directory not found, creating new one
+[2025-11-13 10:00:10] INFO: Server listening on port 8080

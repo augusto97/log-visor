@@ -15,33 +15,33 @@ try {
     }
 
     $file = $_FILES['logfile'];
-    $allowedExtensions = ['log', 'txt'];
     $maxFileSize = 50 * 1024 * 1024; // 50MB
-
-    // Validate file extension
     $fileName = $file['name'];
-    $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-    if (!in_array($fileExtension, $allowedExtensions)) {
-        throw new Exception('Solo se permiten archivos .log o .txt');
-    }
 
     // Validate file size
     if ($file['size'] > $maxFileSize) {
         throw new Exception('El archivo es demasiado grande. Máximo 50MB');
     }
 
-    // Validate file content (text file)
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
+    // Validate that it's a text file by checking content
+    $sample = file_get_contents($file['tmp_name'], false, null, 0, 8192);
 
-    if (!in_array($mimeType, ['text/plain', 'text/x-log', 'application/octet-stream'])) {
-        // Be lenient with mime type, but check if it's readable as text
-        $sample = file_get_contents($file['tmp_name'], false, null, 0, 1024);
-        if (!mb_check_encoding($sample, 'UTF-8') && !mb_check_encoding($sample, 'ASCII')) {
-            throw new Exception('El archivo no parece ser un archivo de texto válido');
-        }
+    // Check if file is empty
+    if (empty($sample)) {
+        throw new Exception('El archivo está vacío');
+    }
+
+    // Check for binary content (null bytes, non-printable characters)
+    // Allow newlines, tabs, carriage returns and printable ASCII/UTF-8
+    $binaryCheck = preg_match('/[\x00-\x08\x0B-\x0C\x0E-\x1F]/', $sample);
+
+    if ($binaryCheck) {
+        throw new Exception('El archivo parece ser binario. Solo se aceptan archivos de texto plano');
+    }
+
+    // Additional validation: check if it's valid UTF-8 or ASCII
+    if (!mb_check_encoding($sample, 'UTF-8') && !mb_check_encoding($sample, 'ASCII')) {
+        throw new Exception('El archivo no tiene una codificación de texto válida (UTF-8 o ASCII)');
     }
 
     // Create uploads directory if it doesn't exist

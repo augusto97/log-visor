@@ -1,0 +1,53 @@
+[13-Nov-2025 10:15:32 UTC] PHP Notice: Undefined variable: user in /var/www/html/app.php on line 15
+[13-Nov-2025 10:16:45 UTC] PHP Warning: Division by zero in /var/www/html/calculator.php on line 42
+[13-Nov-2025 10:17:23 UTC] PHP Fatal error: Call to undefined function mysql_connect() in /var/www/html/db.php on line 8
+2025-11-13 10:18:00 [INFO] User login successful: admin from 192.168.1.100
+2025-11-13 10:18:30 [ERROR] Database connection failed: Access denied for user 'root'@'localhost'
+2025-11-13 10:19:15 [WARNING] Memory usage exceeds 80%: 1.2GB / 1.5GB
+2025-11-13 10:20:00 [DEBUG] Processing request: GET /api/users
+2025-11-13 10:20:05 [INFO] Cache hit for key: user_data_123
+2025-11-13 10:21:00 [CRITICAL] Disk space critically low: 95% used on /dev/sda1
+2025-11-13 10:22:30 [ERROR] Failed to send email to user@example.com: SMTP connection timeout
+192.168.1.100 - - [13/Nov/2025:10:23:15 +0000] "GET /index.php HTTP/1.1" 200 4523 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+192.168.1.101 - - [13/Nov/2025:10:23:18 +0000] "POST /login HTTP/1.1" 302 256 "http://example.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+192.168.1.102 - - [13/Nov/2025:10:23:20 +0000] "GET /api/data HTTP/1.1" 500 1234 "-" "PostmanRuntime/7.29.2"
+2025-11-13 10:24:00 [INFO] Starting background job: data_cleanup
+2025-11-13 10:24:30 [WARNING] Slow query detected: SELECT * FROM users WHERE status = 'active' (2.3s)
+2025-11-13 10:25:00 [ERROR] Exception in file upload: Maximum file size exceeded
+2025-11-13 10:25:45 [INFO] Background job completed: data_cleanup (45.2s)
+[13-Nov-2025 10:26:15 UTC] PHP Deprecated: Function create_function() is deprecated in /var/www/html/legacy.php on line 203
+2025-11-13 10:27:00 [WARNING] API rate limit approaching: 950/1000 requests
+2025-11-13 10:27:30 [ERROR] Payment processing failed: Card declined
+2025-11-13 10:28:00 [INFO] Session created for user: john.doe@example.com
+192.168.1.103 - - [13/Nov/2025:10:28:30 +0000] "GET /admin/dashboard HTTP/1.1" 403 512 "-" "curl/7.68.0"
+2025-11-13 10:29:00 [CRITICAL] Service unavailable: Redis connection refused
+2025-11-13 10:29:30 [ERROR] Authentication failed: Invalid credentials for user 'admin'
+2025-11-13 10:30:00 [WARNING] SSL certificate expires in 7 days
+2025-11-13 10:30:45 [INFO] Backup completed successfully: backup_2025-11-13.tar.gz (2.3GB)
+[13-Nov-2025 10:31:15 UTC] PHP Warning: file_get_contents(/tmp/cache.txt): failed to open stream: No such file or directory in /var/www/html/cache.php on line 67
+2025-11-13 10:32:00 [DEBUG] API request: POST /api/products with payload: {"name":"Widget","price":29.99}
+2025-11-13 10:32:30 [INFO] Product created successfully: ID 1234
+2025-11-13 10:33:00 [ERROR] File not found: /var/www/html/uploads/image123.jpg
+192.168.1.104 - - [13/Nov/2025:10:33:30 +0000] "GET /static/style.css HTTP/1.1" 304 0 "http://example.com/index.php" "Mozilla/5.0"
+2025-11-13 10:34:00 [WARNING] High CPU usage detected: 85% average over 5 minutes
+2025-11-13 10:34:45 [INFO] Cache cleared: 1024 entries removed
+2025-11-13 10:35:00 [ERROR] Queue processing failed: Worker timeout after 30s
+2025-11-13 10:35:30 [CRITICAL] Out of memory: Cannot allocate 256MB for process
+[13-Nov-2025 10:36:00 UTC] PHP Notice: Array to string conversion in /var/www/html/utils.php on line 89
+2025-11-13 10:37:00 [INFO] Scheduled task started: report_generation
+2025-11-13 10:37:45 [WARNING] External API slow response: 3.5s from api.thirdparty.com
+2025-11-13 10:38:00 [DEBUG] Database query: SELECT id, name, email FROM users WHERE active = 1
+2025-11-13 10:38:30 [INFO] Report generated: monthly_sales_nov_2025.pdf
+192.168.1.105 - - [13/Nov/2025:10:39:00 +0000] "DELETE /api/users/456 HTTP/1.1" 204 0 "-" "Mozilla/5.0"
+2025-11-13 10:39:30 [ERROR] Image processing failed: Unsupported format: .webp
+2025-11-13 10:40:00 [WARNING] Deprecated API endpoint used: /v1/legacy/data
+2025-11-13 10:40:45 [INFO] User logout: admin from 192.168.1.100
+[13-Nov-2025 10:41:15 UTC] PHP Warning: session_start(): Failed to read session data in /var/www/html/session.php on line 3
+2025-11-13 10:42:00 [CRITICAL] Security alert: Multiple failed login attempts from IP 192.168.1.200
+2025-11-13 10:42:30 [ERROR] Configuration file not found: /etc/app/config.ini
+2025-11-13 10:43:00 [INFO] Configuration loaded from default settings
+2025-11-13 10:43:45 [WARNING] Temporary directory size exceeds limit: 5.2GB / 5GB
+192.168.1.106 - - [13/Nov/2025:10:44:15 +0000] "GET /sitemap.xml HTTP/1.1" 200 8942 "-" "GoogleBot/2.1"
+2025-11-13 10:45:00 [DEBUG] Session data: {"user_id":123,"role":"admin","last_activity":1699872300}
+2025-11-13 10:45:30 [INFO] Email sent successfully to user@example.com
+2025-11-13 10:46:00 [ERROR] WebSocket connection lost: Connection reset by peer
