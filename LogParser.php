@@ -48,7 +48,7 @@ class LogParser {
             'context' => []
         ];
 
-        // Try different log formats
+        // Try different log formats (order matters - most specific first)
 
         // Apache/Nginx access log
         if (preg_match('/^(\S+) \S+ \S+ \[(.*?)\] "(.*?)" (\d+) (\d+|-) "(.*?)" "(.*?)"/', $line, $matches)) {
@@ -63,39 +63,52 @@ class LogParser {
                 'user_agent' => $matches[7]
             ];
         }
-        // Apache/Nginx error log
+        // Apache/Nginx error log with 3 brackets
         elseif (preg_match('/^\[(.*?)\] \[(.*?)\] \[(.*?)\] (.*)/', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[1]);
             $entry['level'] = strtoupper($matches[2]);
             $entry['message'] = $matches[4];
             $entry['context']['client'] = $matches[3];
         }
-        // PHP error log
-        elseif (preg_match('/^\[(.*?)\] PHP (.*?):  (.*)/', $line, $matches)) {
+        // PHP error log: [date] PHP Level: message
+        elseif (preg_match('/^\[(.*?)\] PHP (Fatal error|Parse error|Warning|Notice|Deprecated|Error|Strict Standards):(.*)/', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[1]);
             $entry['level'] = $this->normalizeLevel($matches[2]);
-            $entry['message'] = $matches[3];
+            $entry['message'] = trim($matches[3]);
         }
-        // WordPress debug log
-        elseif (preg_match('/^\[(.*?)\] (.*?): (.*)/', $line, $matches)) {
+        // Format: 2025-11-13 10:00:00 [LEVEL] message
+        elseif (preg_match('/^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\s*\[(ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY|FATAL)\]\s*(.*)$/i', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[1]);
             $entry['level'] = strtoupper($matches[2]);
             $entry['message'] = $matches[3];
         }
-        // Generic timestamp + level + message
-        elseif (preg_match('/^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}.*?)\s*[\[\(]?(ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY)[\]\)]?\s*:?\s*(.*)$/i', $line, $matches)) {
+        // Format: [2025-11-13 10:00:00] LEVEL: message
+        elseif (preg_match('/^\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2})\]\s*(ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY|FATAL):\s*(.*)$/i', $line, $matches)) {
             $entry['timestamp'] = $this->parseDate($matches[1]);
             $entry['level'] = strtoupper($matches[2]);
             $entry['message'] = $matches[3];
         }
-        // Look for level keywords anywhere in the line
-        elseif (preg_match('/(ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY)/i', $line, $matches)) {
-            $entry['level'] = strtoupper($matches[1]);
-
-            // Try to extract timestamp
-            if (preg_match('/(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^\s]*)/', $line, $dateMatch)) {
-                $entry['timestamp'] = $this->parseDate($dateMatch[1]);
+        // Format: [date] message (only if date is valid and message doesn't start with level)
+        elseif (preg_match('/^\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^\]]*)\]\s+(.*)$/i', $line, $matches)) {
+            $entry['timestamp'] = $this->parseDate($matches[1]);
+            $entry['message'] = $matches[2];
+            // Try to extract level from message
+            if (preg_match('/^(ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY|FATAL)[\s:]/i', $matches[2], $levelMatch)) {
+                $entry['level'] = strtoupper($levelMatch[1]);
+                $entry['message'] = trim(substr($matches[2], strlen($levelMatch[0])));
             }
+        }
+        // Generic timestamp at start + level somewhere: 2025-11-13 10:00:00 ... ERROR ... message
+        elseif (preg_match('/^(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[^\s]*)/', $line, $dateMatch)) {
+            $entry['timestamp'] = $this->parseDate($dateMatch[1]);
+            // Look for level in the rest of the line
+            if (preg_match('/[\[\(\s](ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY|FATAL)[\]\)\s:]/i', $line, $levelMatch)) {
+                $entry['level'] = strtoupper($levelMatch[1]);
+            }
+        }
+        // Look for level keywords anywhere in the line (fallback)
+        elseif (preg_match('/[\[\(\s](ERROR|WARN|WARNING|INFO|DEBUG|NOTICE|CRITICAL|ALERT|EMERGENCY|FATAL)[\]\)\s:]/i', $line, $matches)) {
+            $entry['level'] = strtoupper($matches[1]);
         }
 
         $entry['level'] = $this->normalizeLevel($entry['level']);
@@ -107,15 +120,19 @@ class LogParser {
      * Normalize log level names
      */
     private function normalizeLevel($level) {
-        $level = strtoupper($level);
+        $level = strtoupper(trim($level));
 
         $levelMap = [
             'FATAL ERROR' => 'ERROR',
             'FATAL' => 'ERROR',
+            'PARSE ERROR' => 'ERROR',
+            'STRICT STANDARDS' => 'NOTICE',
             'WARN' => 'WARNING',
             'ERR' => 'ERROR',
             'CRIT' => 'CRITICAL',
-            'EMERG' => 'EMERGENCY'
+            'EMERG' => 'EMERGENCY',
+            'ALERT' => 'CRITICAL',
+            'EMERGENCY' => 'CRITICAL'
         ];
 
         return $levelMap[$level] ?? $level;

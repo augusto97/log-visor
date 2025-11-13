@@ -50,7 +50,8 @@ function setupEventListeners() {
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
     uploadArea.addEventListener('click', (e) => {
-        if (e.target === uploadArea || e.target.closest('.upload-area')) {
+        // Only trigger if clicking directly on the upload area, not on the button
+        if (e.target === uploadArea || (e.target.closest('.upload-area') && !e.target.closest('button'))) {
             fileInput.click();
         }
     });
@@ -268,6 +269,8 @@ function loadFilteredLogs() {
 
 // Display logs
 function displayLogs(data) {
+    console.log('Displaying logs with data:', data);
+
     // Update file name
     fileName.textContent = data.file_name;
 
@@ -285,7 +288,8 @@ function displayLogs(data) {
     noResults.style.display = 'none';
 
     logList.innerHTML = '';
-    data.entries.forEach(entry => {
+    data.entries.forEach((entry, index) => {
+        console.log(`Entry ${index}:`, entry);
         const entryElement = createLogEntry(entry);
         logList.appendChild(entryElement);
     });
