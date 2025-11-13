@@ -24,3 +24,7 @@ Thumbs.db
 # PHP
 vendor/
 composer.lock
+
+# Test and debug files (optional - uncomment to ignore)
+phpinfo.php
+test_simple.php
