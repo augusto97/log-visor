@@ -119,18 +119,17 @@ function handleFileSelect(e) {
 
 // Upload file
 function uploadFile(file) {
-    // Validate file
-    const validExtensions = ['log', 'txt'];
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-
-    if (!validExtensions.includes(fileExtension)) {
-        alert('Solo se permiten archivos .log o .txt');
-        return;
-    }
-
+    // Validate file size only on client side
+    // Content validation will be done on server side
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
         alert('El archivo es demasiado grande. Máximo 50MB');
+        return;
+    }
+
+    // Warn about file size = 0
+    if (file.size === 0) {
+        alert('El archivo está vacío');
         return;
     }
 

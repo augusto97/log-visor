@@ -6,7 +6,7 @@ Log Visor es una aplicación web moderna y amigable que te permite analizar arch
 
 ## ✨ Características
 
-- 📁 **Subida de archivos**: Sube archivos .log o .txt mediante drag & drop o selección manual
+- 📁 **Subida de archivos**: Sube cualquier archivo de texto plano mediante drag & drop o selección manual
 - 🎨 **Interfaz moderna**: Diseño responsive y visualmente atractivo
 - 🔍 **Filtros avanzados**: Filtra por nivel, fecha, y búsqueda de texto
 - 📊 **Estadísticas en tiempo real**: Visualiza la distribución de logs por nivel
@@ -14,6 +14,7 @@ Log Visor es una aplicación web moderna y amigable que te permite analizar arch
 - 📄 **Paginación**: Maneja archivos grandes con paginación eficiente
 - 🌈 **Código de colores**: Identifica rápidamente errores, warnings, info, etc.
 - 💾 **Sesiones**: Mantiene tu archivo cargado entre visitas
+- 📝 **Formatos flexibles**: Acepta archivos .log, .txt, sin extensión o cualquier extensión de texto
 
 ## 🚀 Formatos Soportados
 
@@ -181,7 +182,8 @@ elseif (preg_match('/tu-patron-regex/', $line, $matches)) {
 ### El archivo no se sube
 - Verifica los permisos del directorio `uploads/`
 - Revisa la configuración de PHP (`upload_max_filesize`)
-- Comprueba que el formato sea `.log` o `.txt`
+- Asegúrate de que sea un archivo de texto plano (no binario)
+- Verifica que el archivo no esté vacío
 
 ### Los logs no se muestran correctamente
 - Verifica que el archivo tenga un formato de log válido
