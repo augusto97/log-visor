@@ -42,39 +42,38 @@
         </div>
     </div>
 
-    <!-- Filters Bar -->
-    <div class="filters-bar hidden" id="filtersBar">
-        <div class="filter-group">
-            <span class="filter-label">🔍</span>
-            <input type="text" class="filter-input" id="searchInput" placeholder="Buscar en logs...">
+    <!-- Controls Bar -->
+    <div class="controls-bar hidden" id="controlsBar">
+        <!-- View Selector -->
+        <div class="view-selector">
+            <button class="view-btn active" data-view="table" title="Vista de tabla detallada">📋 Tabla</button>
+            <button class="view-btn" data-view="dashboard" title="Dashboard con estadísticas">📊 Dashboard</button>
+            <button class="view-btn" data-view="compact" title="Vista compacta">📑 Compacta</button>
+            <button class="view-btn" data-view="timeline" title="Timeline cronológico">⏱️ Timeline</button>
         </div>
-        <div class="filter-group">
-            <span class="filter-label">Nivel:</span>
-            <select class="filter-select" id="levelSelect">
-                <option value="ALL">Todos</option>
-                <option value="ERROR">Error</option>
-                <option value="CRITICAL">Critical</option>
-                <option value="WARNING">Warning</option>
-                <option value="INFO">Info</option>
-                <option value="DEBUG">Debug</option>
-                <option value="NOTICE">Notice</option>
-                <option value="ACCESS">Access</option>
-            </select>
+
+        <!-- Filters -->
+        <div class="filter-controls">
+            <div class="filter-group">
+                <input type="text" class="filter-input-sm" id="searchInput" placeholder="🔍 Buscar...">
+            </div>
+            <div class="filter-group">
+                <select class="filter-select-sm" id="levelSelect">
+                    <option value="ALL">Todos</option>
+                    <option value="ERROR">Error</option>
+                    <option value="CRITICAL">Critical</option>
+                    <option value="WARNING">Warning</option>
+                    <option value="INFO">Info</option>
+                    <option value="DEBUG">Debug</option>
+                    <option value="NOTICE">Notice</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-sm" id="applyFilters">Filtrar</button>
         </div>
-        <div class="filter-group">
-            <span class="filter-label">Desde:</span>
-            <input type="datetime-local" class="filter-input" id="startDate" style="min-width: 200px;">
-        </div>
-        <div class="filter-group">
-            <span class="filter-label">Hasta:</span>
-            <input type="datetime-local" class="filter-input" id="endDate" style="min-width: 200px;">
-        </div>
-        <button class="btn btn-primary btn-sm" id="applyFilters">Aplicar</button>
-        <button class="btn btn-secondary btn-sm" id="clearFilters">Limpiar</button>
     </div>
 
-    <!-- Log Viewer -->
-    <div class="log-viewer hidden" id="logViewer">
+    <!-- Table View (Vista por defecto) -->
+    <div class="view-container" id="tableView">
         <table class="log-table">
             <thead id="logTableHead">
                 <tr>
@@ -91,6 +90,84 @@
         <div class="loading hidden" id="tableLoading">
             <div class="spinner"></div>
             <p>Cargando logs...</p>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div class="view-container hidden" id="dashboardView">
+        <div class="dashboard-grid">
+            <!-- Stats Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalLogs">0</div>
+                        <div class="stat-label">Total Entradas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-error">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="errorCount">0</div>
+                        <div class="stat-label">Errores</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon">🟡</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="warningCount">0</div>
+                        <div class="stat-label">Warnings</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-info">
+                    <div class="stat-icon">🔵</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="infoCount">0</div>
+                        <div class="stat-label">Info</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>Distribución por Nivel</h3>
+                    <div class="chart-container" id="levelChart"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Errores Recientes</h3>
+                    <div id="recentErrors"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact View -->
+    <div class="view-container hidden" id="compactView">
+        <div class="compact-list" id="compactList"></div>
+    </div>
+
+    <!-- Timeline View -->
+    <div class="view-container hidden" id="timelineView">
+        <div class="timeline-container" id="timelineContainer"></div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar hidden" id="paginationBar">
+        <div class="pagination-info">
+            <span id="paginationInfo">Mostrando 1-50 de 500</span>
+        </div>
+        <div class="pagination-controls">
+            <button class="btn btn-sm" id="prevPage">◀ Anterior</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="btn btn-sm" id="nextPage">Siguiente ▶</button>
+        </div>
+        <div class="pagination-size">
+            <select class="filter-select-sm" id="pageSize">
+                <option value="50">50 por página</option>
+                <option value="100">100 por página</option>
+                <option value="200">200 por página</option>
+            </select>
         </div>
     </div>
 
