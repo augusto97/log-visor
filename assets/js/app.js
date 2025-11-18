@@ -3,8 +3,15 @@
 // =====================================
 // Debug mode - can be toggled via UI button
 let DEBUG = localStorage.getItem('debugMode') === 'true' || false;
-const log = (...args) => { if (DEBUG) console.log(...args); };
-const logError = (...args) => { if (DEBUG) console.error(...args); };
+
+// Log functions that read DEBUG dynamically
+function log(...args) {
+    if (DEBUG) console.log(...args);
+}
+
+function logError(...args) {
+    if (DEBUG) console.error(...args);
+}
 
 let currentLogs = [];
 let filteredLogs = [];
@@ -527,6 +534,10 @@ function renderTableView() {
 // =====================================
 
 function renderCompactView() {
+    log('=== renderCompactView CALLED ===');
+    log('compactTableHead:', compactTableHead);
+    log('compactTableBody:', compactTableBody);
+
     // Render header - only essential columns
     let headerHtml = '<tr>';
     headerHtml += '<th class="col-line-compact">#</th>';
@@ -534,13 +545,30 @@ function renderCompactView() {
     headerHtml += '<th class="col-time-compact">Hora</th>';
     headerHtml += '<th class="col-message-compact">Mensaje</th>';
     headerHtml += '</tr>';
-    if (compactTableHead) compactTableHead.innerHTML = headerHtml;
+
+    log('Setting header HTML');
+    if (compactTableHead) {
+        compactTableHead.innerHTML = headerHtml;
+        log('Header set successfully');
+    } else {
+        logError('compactTableHead is null!');
+    }
 
     // Render body
     const pageLogs = getCurrentPageLogs();
+    log('Page logs count:', pageLogs ? pageLogs.length : 0);
+
+    if (!pageLogs || pageLogs.length === 0) {
+        log('No logs to display in compact view');
+        if (compactTableBody) {
+            compactTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">No hay logs para mostrar</td></tr>';
+        }
+        return;
+    }
+
     let bodyHtml = '';
 
-    pageLogs.forEach(log => {
+    pageLogs.forEach((log, index) => {
         const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
         const levelClass = log.level ? log.level.toLowerCase() : 'info';
 
@@ -550,9 +578,20 @@ function renderCompactView() {
         bodyHtml += `<td class="col-time-compact"><span class="time-compact">${time}</span></td>`;
         bodyHtml += `<td class="col-message-compact">${escapeHtml(truncate(log.message, 120))}</td>`;
         bodyHtml += '</tr>';
+
+        if (index === 0) {
+            log('First row HTML:', bodyHtml);
+        }
     });
 
-    if (compactTableBody) compactTableBody.innerHTML = bodyHtml;
+    log('Total body HTML length:', bodyHtml.length);
+    log('Setting body HTML');
+    if (compactTableBody) {
+        compactTableBody.innerHTML = bodyHtml;
+        log('Body set successfully, rows:', compactTableBody.children.length);
+    } else {
+        logError('compactTableBody is null!');
+    }
 }
 
 // =====================================
