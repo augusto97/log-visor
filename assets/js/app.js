@@ -66,48 +66,68 @@ const viewBtns = document.querySelectorAll('.view-btn');
 // =====================================
 
 // Upload
-selectFileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    fileInput.click();
-});
+if (selectFileBtn) {
+    selectFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (fileInput) fileInput.click();
+    });
+}
 
-uploadBox.addEventListener('click', (e) => {
-    if (!e.target.closest('button')) {
-        fileInput.click();
-    }
-});
+if (uploadBox) {
+    uploadBox.addEventListener('click', (e) => {
+        if (!e.target.closest('button') && fileInput) {
+            fileInput.click();
+        }
+    });
+}
 
-fileInput.addEventListener('change', handleFileSelect);
+if (fileInput) {
+    fileInput.addEventListener('change', handleFileSelect);
+}
 
 // Drag & Drop
-uploadBox.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadBox.classList.add('drag-over');
-});
+if (uploadBox) {
+    uploadBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (uploadBox) uploadBox.classList.add('drag-over');
+    });
 
-uploadBox.addEventListener('dragleave', () => {
-    uploadBox.classList.remove('drag-over');
-});
+    uploadBox.addEventListener('dragleave', () => {
+        if (uploadBox) uploadBox.classList.remove('drag-over');
+    });
 
-uploadBox.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadBox.classList.remove('drag-over');
-    if (e.dataTransfer.files.length > 0) {
-        uploadFile(e.dataTransfer.files[0]);
-    }
-});
+    uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (uploadBox) uploadBox.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            uploadFile(e.dataTransfer.files[0]);
+        }
+    });
+}
 
 // Other controls
-closeFileBtn.addEventListener('click', closeFile);
-applyFilters.addEventListener('click', filterLogs);
-modalClose.addEventListener('click', () => logModal.classList.remove('show'));
-logModal.addEventListener('click', (e) => {
-    if (e.target === logModal) logModal.classList.remove('show');
-});
+if (closeFileBtn) {
+    closeFileBtn.addEventListener('click', closeFile);
+}
+if (applyFilters) {
+    applyFilters.addEventListener('click', filterLogs);
+}
+if (modalClose && logModal) {
+    modalClose.addEventListener('click', () => {
+        if (logModal) logModal.classList.remove('show');
+    });
+}
+if (logModal) {
+    logModal.addEventListener('click', (e) => {
+        if (e.target === logModal && logModal) logModal.classList.remove('show');
+    });
+}
 
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') filterLogs();
-});
+if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') filterLogs();
+    });
+}
 
 // View selector
 viewBtns.forEach(btn => {
@@ -167,8 +187,8 @@ function uploadFile(file) {
         return;
     }
 
-    uploadBox.classList.add('hidden');
-    uploadLoading.classList.remove('hidden');
+    if (uploadBox) uploadBox.classList.add('hidden');
+    if (uploadLoading) uploadLoading.classList.remove('hidden');
 
     const formData = new FormData();
     formData.append('logfile', file);
@@ -194,9 +214,9 @@ function uploadFile(file) {
 }
 
 function resetUpload() {
-    uploadBox.classList.remove('hidden');
-    uploadLoading.classList.add('hidden');
-    fileInput.value = '';
+    if (uploadBox) uploadBox.classList.remove('hidden');
+    if (uploadLoading) uploadLoading.classList.add('hidden');
+    if (fileInput) fileInput.value = '';
 }
 
 // =====================================
@@ -272,7 +292,7 @@ function updateFileStats() {
         badges.push(`<span class="stat-badge error">${currentStats.CRITICAL} críticos</span>`);
     }
 
-    fileStatsDisplay.innerHTML = badges.join('');
+    if (fileStatsDisplay) fileStatsDisplay.innerHTML = badges.join('');
 }
 
 function closeFile() {
@@ -370,7 +390,7 @@ function renderTableView() {
         headerHtml += `<th class="${className}">${label}</th>`;
     });
     headerHtml += '</tr>';
-    logTableHead.innerHTML = headerHtml;
+    if (logTableHead) logTableHead.innerHTML = headerHtml;
 
     // Render body
     const pageLogs = getCurrentPageLogs();
@@ -403,7 +423,7 @@ function renderTableView() {
         bodyHtml += '</tr>';
     });
 
-    logTableBody.innerHTML = bodyHtml;
+    if (logTableBody) logTableBody.innerHTML = bodyHtml;
 }
 
 // =====================================
@@ -412,10 +432,10 @@ function renderTableView() {
 
 function renderDashboard() {
     // Update stats cards
-    totalLogsEl.textContent = filteredLogs.length;
-    errorCountEl.textContent = currentStats.ERROR || 0;
-    warningCountEl.textContent = currentStats.WARNING || 0;
-    infoCountEl.textContent = currentStats.INFO || 0;
+    if (totalLogsEl) totalLogsEl.textContent = filteredLogs.length;
+    if (errorCountEl) errorCountEl.textContent = currentStats.ERROR || 0;
+    if (warningCountEl) warningCountEl.textContent = currentStats.WARNING || 0;
+    if (infoCountEl) infoCountEl.textContent = currentStats.INFO || 0;
 
     // Render level chart
     renderLevelChart();
@@ -447,7 +467,7 @@ function renderLevelChart() {
     });
 
     html += '</div>';
-    levelChartEl.innerHTML = html;
+    if (levelChartEl) levelChartEl.innerHTML = html;
 }
 
 function renderRecentErrors() {
@@ -456,7 +476,9 @@ function renderRecentErrors() {
         .slice(0, 10);
 
     if (errors.length === 0) {
-        recentErrorsEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay errores</p>';
+        if (recentErrorsEl) {
+            recentErrorsEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay errores</p>';
+        }
         return;
     }
 
@@ -473,7 +495,7 @@ function renderRecentErrors() {
         `;
     });
 
-    recentErrorsEl.innerHTML = html;
+    if (recentErrorsEl) recentErrorsEl.innerHTML = html;
 }
 
 // =====================================
@@ -533,10 +555,12 @@ function updatePagination() {
     const start = (currentPage - 1) * pageSize + 1;
     const end = Math.min(currentPage * pageSize, total);
 
-    paginationInfo.textContent = `Mostrando ${start}-${end} de ${total}`;
+    if (paginationInfo) {
+        paginationInfo.textContent = `Mostrando ${start}-${end} de ${total}`;
+    }
 
-    prevPage.disabled = currentPage === 1;
-    nextPage.disabled = currentPage === totalPages;
+    if (prevPage) prevPage.disabled = currentPage === 1;
+    if (nextPage) nextPage.disabled = currentPage === totalPages;
 
     renderPageNumbers(totalPages);
 }
@@ -557,13 +581,15 @@ function renderPageNumbers(totalPages) {
         }
     }
 
-    pageNumbers.innerHTML = pages.map(page => {
-        if (page === '...') {
-            return '<span class="page-ellipsis">...</span>';
-        }
-        const active = page === currentPage ? 'active' : '';
-        return `<button class="page-num ${active}" onclick="goToPage(${page})">${page}</button>`;
-    }).join('');
+    if (pageNumbers) {
+        pageNumbers.innerHTML = pages.map(page => {
+            if (page === '...') {
+                return '<span class="page-ellipsis">...</span>';
+            }
+            const active = page === currentPage ? 'active' : '';
+            return `<button class="page-num ${active}" onclick="goToPage(${page})">${page}</button>`;
+        }).join('');
+    }
 }
 
 function goToPage(page) {
@@ -614,8 +640,8 @@ function showLogDetail(index) {
         </div>
     `;
 
-    logDetail.innerHTML = html;
-    logModal.classList.add('show');
+    if (logDetail) logDetail.innerHTML = html;
+    if (logModal) logModal.classList.add('show');
 }
 
 // =====================================
