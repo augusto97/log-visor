@@ -282,14 +282,7 @@ function detectColumns() {
 
 function populateLevelFilter() {
     if (!levelSelect) return;
-
-    // Get all unique levels from the logs
-    const levels = new Set();
-    currentLogs.forEach(log => {
-        if (log.level) {
-            levels.add(log.level);
-        }
-    });
+    if (!currentStats || Object.keys(currentStats).length === 0) return;
 
     // Define order of severity (common levels first)
     const severityOrder = {
@@ -303,8 +296,8 @@ function populateLevelFilter() {
         'ACCESS': 8
     };
 
-    // Sort levels by severity, then alphabetically
-    const sortedLevels = Array.from(levels).sort((a, b) => {
+    // Get levels from stats and sort by severity
+    const levels = Object.keys(currentStats).sort((a, b) => {
         const orderA = severityOrder[a.toUpperCase()] || 999;
         const orderB = severityOrder[b.toUpperCase()] || 999;
 
@@ -314,12 +307,12 @@ function populateLevelFilter() {
         return a.localeCompare(b);
     });
 
-    // Clear current options except "ALL"
+    // Clear current options
     levelSelect.innerHTML = '<option value="ALL">Todos los niveles</option>';
 
     // Add level options with counts
-    sortedLevels.forEach(level => {
-        const count = currentStats[level] || 0;
+    levels.forEach(level => {
+        const count = currentStats[level];
         const option = document.createElement('option');
         option.value = level;
         option.textContent = `${level} (${count})`;
