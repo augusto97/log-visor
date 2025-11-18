@@ -48,7 +48,6 @@
         <div class="view-selector">
             <button class="view-btn active" data-view="table" title="Vista de tabla detallada">📋 Tabla</button>
             <button class="view-btn" data-view="dashboard" title="Dashboard con estadísticas">📊 Dashboard</button>
-            <button class="view-btn" data-view="compact" title="Tabla compacta">📑 Compacta</button>
             <button class="view-btn" data-view="mini" title="Vista ultra compacta">📝 Mini</button>
         </div>
 
@@ -134,23 +133,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Compact View (Tabla Compacta) -->
-    <div class="view-container hidden" id="compactView">
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nivel</th>
-                    <th>Hora</th>
-                    <th>Mensaje</th>
-                </tr>
-            </thead>
-            <tbody id="compactTableBody">
-                <!-- Compact logs rendered here -->
-            </tbody>
-        </table>
     </div>
 
     <!-- Mini View (Ultra Compacta) -->

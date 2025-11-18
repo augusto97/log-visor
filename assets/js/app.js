@@ -33,15 +33,11 @@ const logDetail = document.getElementById('logDetail');
 // View containers
 const tableView = document.getElementById('tableView');
 const dashboardView = document.getElementById('dashboardView');
-const compactView = document.getElementById('compactView');
 const miniView = document.getElementById('miniView');
 
 // Table elements
 const logTableHead = document.getElementById('logTableHead');
 const logTableBody = document.getElementById('logTableBody');
-
-// Compact table elements
-const compactTableBody = document.getElementById('compactTableBody');
 
 // Dashboard elements
 const totalLogsEl = document.getElementById('totalLogs');
@@ -388,7 +384,6 @@ function switchView(view) {
     // Hide all views
     if (tableView) tableView.classList.add('hidden');
     if (dashboardView) dashboardView.classList.add('hidden');
-    if (compactView) compactView.classList.add('hidden');
     if (miniView) miniView.classList.add('hidden');
 
     // Render selected view
@@ -409,14 +404,6 @@ function renderCurrentView() {
             if (dashboardView) dashboardView.classList.remove('hidden');
             renderDashboard();
             if (paginationBar) paginationBar.classList.add('hidden');
-            break;
-        case 'compact':
-            if (compactView) compactView.classList.remove('hidden');
-            renderCompactView();
-            if (paginationBar) {
-                paginationBar.classList.remove('hidden');
-                updatePagination();
-            }
             break;
         case 'mini':
             if (miniView) miniView.classList.remove('hidden');
@@ -476,35 +463,6 @@ function renderTableView() {
     });
 
     if (logTableBody) logTableBody.innerHTML = bodyHtml;
-}
-
-// =====================================
-// COMPACT VIEW (Tabla Compacta)
-// =====================================
-
-function renderCompactView() {
-    if (!compactTableBody) return;
-
-    const pageLogs = getCurrentPageLogs();
-    let html = '';
-
-    for (let i = 0; i < pageLogs.length; i++) {
-        const entry = pageLogs[i];
-        const time = entry.timestamp ? entry.timestamp.substring(11, 19) : '--:--:--';
-        const level = entry.level || 'INFO';
-        const levelClass = level.toLowerCase();
-        const message = entry.message || '';
-        const lineNum = entry.line_number || (i + 1);
-
-        html += '<tr class="log-row" onclick="showLogDetail(' + (lineNum - 1) + ')">';
-        html += '<td>#' + lineNum + '</td>';
-        html += '<td><span class="level-badge ' + levelClass + '">' + level + '</span></td>';
-        html += '<td>' + time + '</td>';
-        html += '<td>' + escapeHtml(truncate(message, 120)) + '</td>';
-        html += '</tr>';
-    }
-
-    compactTableBody.innerHTML = html;
 }
 
 // =====================================
