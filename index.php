@@ -89,7 +89,7 @@
     <!-- Dashboard View -->
     <div class="view-container hidden" id="dashboardView">
         <div class="dashboard-grid">
-            <!-- Stats Cards -->
+            <!-- Stats Cards Row 1 -->
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon">📄</div>
@@ -121,15 +121,79 @@
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- Stats Cards Row 2 - Métricas adicionales -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="timeSpan">-</div>
+                        <div class="stat-label">Período</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="logsPerMinute">-</div>
+                        <div class="stat-label">Logs/min promedio</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="errorRate">0%</div>
+                        <div class="stat-label">Tasa de Error</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="uniqueMessages">0</div>
+                        <div class="stat-label">Mensajes únicos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1 - Timeline y Distribución -->
             <div class="charts-row">
-                <div class="chart-card">
-                    <h3>Distribución por Nivel</h3>
-                    <div class="chart-container" id="levelChart"></div>
+                <div class="chart-card wide">
+                    <h3>📈 Timeline de Logs</h3>
+                    <div class="chart-container" id="timelineChart"></div>
                 </div>
                 <div class="chart-card">
-                    <h3>Errores Recientes</h3>
-                    <div id="recentErrors"></div>
+                    <h3>📊 Distribución por Nivel</h3>
+                    <div class="chart-container" id="levelChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 - Actividad por hora y Top Errores -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>🕐 Actividad por Hora</h3>
+                    <div class="chart-container" id="hourlyChart"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🔥 Top 10 Errores Frecuentes</h3>
+                    <div class="chart-container" id="topErrorsChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 3 - Contexto adicional -->
+            <div class="charts-row" id="contextChartsRow" style="display: none;">
+                <div class="chart-card">
+                    <h3 id="contextChart1Title">Contexto</h3>
+                    <div class="chart-container" id="contextChart1"></div>
+                </div>
+                <div class="chart-card">
+                    <h3 id="contextChart2Title">Contexto</h3>
+                    <div class="chart-container" id="contextChart2"></div>
+                </div>
+            </div>
+
+            <!-- Recent Critical Events -->
+            <div class="charts-row">
+                <div class="chart-card full-width">
+                    <h3>🚨 Eventos Críticos Recientes</h3>
+                    <div id="criticalEvents"></div>
                 </div>
             </div>
         </div>
