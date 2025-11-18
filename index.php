@@ -141,7 +141,7 @@
 
     <!-- Compact View (Tabla Compacta) -->
     <div class="view-container hidden" id="compactView">
-        <table class="compact-table">
+        <table class="log-table compact-table">
             <thead id="compactTableHead"></thead>
             <tbody id="compactTableBody"></tbody>
         </table>
