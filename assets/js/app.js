@@ -44,8 +44,20 @@ const totalLogsEl = document.getElementById('totalLogs');
 const errorCountEl = document.getElementById('errorCount');
 const warningCountEl = document.getElementById('warningCount');
 const infoCountEl = document.getElementById('infoCount');
+const timeSpanEl = document.getElementById('timeSpan');
+const logsPerMinuteEl = document.getElementById('logsPerMinute');
+const errorRateEl = document.getElementById('errorRate');
+const uniqueMessagesEl = document.getElementById('uniqueMessages');
 const levelChartEl = document.getElementById('levelChart');
-const recentErrorsEl = document.getElementById('recentErrors');
+const timelineChartEl = document.getElementById('timelineChart');
+const hourlyChartEl = document.getElementById('hourlyChart');
+const topErrorsChartEl = document.getElementById('topErrorsChart');
+const contextChart1El = document.getElementById('contextChart1');
+const contextChart2El = document.getElementById('contextChart2');
+const contextChart1TitleEl = document.getElementById('contextChart1Title');
+const contextChart2TitleEl = document.getElementById('contextChart2Title');
+const contextChartsRowEl = document.getElementById('contextChartsRow');
+const criticalEventsEl = document.getElementById('criticalEvents');
 
 // Other view elements
 const miniList = document.getElementById('miniList');
@@ -470,27 +482,81 @@ function renderTableView() {
 // =====================================
 
 function renderDashboard() {
-    // Update stats cards
-    if (totalLogsEl) totalLogsEl.textContent = filteredLogs.length;
-    if (errorCountEl) errorCountEl.textContent = currentStats.ERROR || 0;
+    // Calculate advanced stats
+    const stats = calculateAdvancedStats();
+
+    // Update basic stats cards
+    if (totalLogsEl) totalLogsEl.textContent = filteredLogs.length.toLocaleString();
+    if (errorCountEl) errorCountEl.textContent = (currentStats.ERROR || 0) + (currentStats.CRITICAL || 0);
     if (warningCountEl) warningCountEl.textContent = currentStats.WARNING || 0;
     if (infoCountEl) infoCountEl.textContent = currentStats.INFO || 0;
 
-    // Render level chart
-    renderLevelChart();
+    // Update advanced stats cards
+    if (timeSpanEl) timeSpanEl.textContent = stats.timeSpan;
+    if (logsPerMinuteEl) logsPerMinuteEl.textContent = stats.logsPerMinute;
+    if (errorRateEl) errorRateEl.textContent = stats.errorRate;
+    if (uniqueMessagesEl) uniqueMessagesEl.textContent = stats.uniqueMessages;
 
-    // Render recent errors
-    renderRecentErrors();
+    // Render all charts
+    renderLevelChart();
+    renderTimelineChart();
+    renderHourlyChart();
+    renderTopErrorsChart();
+    renderCriticalEvents();
+    renderContextCharts();
+}
+
+function calculateAdvancedStats() {
+    const timestamps = filteredLogs
+        .map(log => log.timestamp)
+        .filter(ts => ts);
+
+    let timeSpan = '-';
+    let logsPerMinute = '-';
+
+    if (timestamps.length > 1) {
+        const sorted = [...timestamps].sort();
+        const first = new Date(sorted[0]);
+        const last = new Date(sorted[sorted.length - 1]);
+        const diffMs = last - first;
+        const diffMinutes = diffMs / 1000 / 60;
+
+        if (diffMinutes < 60) {
+            timeSpan = Math.round(diffMinutes) + 'm';
+        } else if (diffMinutes < 1440) {
+            timeSpan = Math.round(diffMinutes / 60) + 'h';
+        } else {
+            timeSpan = Math.round(diffMinutes / 1440) + 'd';
+        }
+
+        if (diffMinutes > 0) {
+            logsPerMinute = (filteredLogs.length / diffMinutes).toFixed(1);
+        }
+    }
+
+    const totalLogs = filteredLogs.length;
+    const errorLogs = (currentStats.ERROR || 0) + (currentStats.CRITICAL || 0);
+    const errorRate = totalLogs > 0 ? ((errorLogs / totalLogs) * 100).toFixed(1) + '%' : '0%';
+
+    const uniqueMessages = new Set(filteredLogs.map(log => log.message)).size;
+
+    return { timeSpan, logsPerMinute, errorRate, uniqueMessages };
 }
 
 function renderLevelChart() {
-    const levels = ['ERROR', 'CRITICAL', 'WARNING', 'INFO', 'DEBUG', 'NOTICE'];
+    if (!levelChartEl) return;
+
     const total = filteredLogs.length;
+    if (total === 0) {
+        levelChartEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay datos</p>';
+        return;
+    }
 
     let html = '<div class="bar-chart">';
 
-    levels.forEach(level => {
-        const count = currentStats[level] || 0;
+    // Only show levels that actually exist in the logs
+    Object.keys(currentStats).sort((a, b) => currentStats[b] - currentStats[a]).forEach(level => {
+        const count = currentStats[level];
         if (count > 0) {
             const percentage = (count / total * 100).toFixed(1);
             html += `
@@ -506,35 +572,277 @@ function renderLevelChart() {
     });
 
     html += '</div>';
-    if (levelChartEl) levelChartEl.innerHTML = html;
+    levelChartEl.innerHTML = html;
 }
 
-function renderRecentErrors() {
-    const errors = filteredLogs
-        .filter(log => log.level === 'ERROR' || log.level === 'CRITICAL')
-        .slice(0, 10);
+function renderTimelineChart() {
+    if (!timelineChartEl) return;
 
-    if (errors.length === 0) {
-        if (recentErrorsEl) {
-            recentErrorsEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay errores</p>';
-        }
+    const logsWithTime = filteredLogs.filter(log => log.timestamp);
+
+    if (logsWithTime.length === 0) {
+        timelineChartEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Sin datos temporales</p>';
         return;
     }
 
-    let html = '';
-    errors.forEach(log => {
+    // Group logs by time intervals (buckets)
+    const buckets = {};
+    const bucketSize = determineBucketSize(logsWithTime);
+
+    logsWithTime.forEach(log => {
+        const bucket = getBucketKey(log.timestamp, bucketSize);
+        if (!buckets[bucket]) {
+            buckets[bucket] = { total: 0, error: 0, warning: 0, info: 0 };
+        }
+        buckets[bucket].total++;
+        if (log.level === 'ERROR' || log.level === 'CRITICAL') {
+            buckets[bucket].error++;
+        } else if (log.level === 'WARNING') {
+            buckets[bucket].warning++;
+        } else {
+            buckets[bucket].info++;
+        }
+    });
+
+    const sortedBuckets = Object.keys(buckets).sort();
+    const maxCount = Math.max(...sortedBuckets.map(k => buckets[k].total));
+
+    let html = '<div class="timeline-chart">';
+    sortedBuckets.forEach(bucket => {
+        const data = buckets[bucket];
+        const height = (data.total / maxCount * 100);
+        const errorHeight = (data.error / data.total * 100);
+        const warningHeight = (data.warning / data.total * 100);
+        const infoHeight = (data.info / data.total * 100);
+
         html += `
-            <div class="error-item" onclick="showLogDetail(${log.line_number - 1})">
-                <div class="error-header">
-                    <span>#${log.line_number}</span>
-                    <span>${log.timestamp || 'Sin timestamp'}</span>
-                </div>
-                <div class="error-message">${escapeHtml(truncate(log.message, 100))}</div>
+            <div class="timeline-bar" style="height: ${height}%;" title="${bucket}: ${data.total} logs">
+                <div class="timeline-segment error" style="height: ${errorHeight}%"></div>
+                <div class="timeline-segment warning" style="height: ${warningHeight}%"></div>
+                <div class="timeline-segment info" style="height: ${infoHeight}%"></div>
             </div>
         `;
     });
+    html += '</div>';
+    html += '<div class="timeline-labels">';
+    html += `<span>${sortedBuckets[0]}</span>`;
+    if (sortedBuckets.length > 1) {
+        html += `<span>${sortedBuckets[Math.floor(sortedBuckets.length / 2)]}</span>`;
+        html += `<span>${sortedBuckets[sortedBuckets.length - 1]}</span>`;
+    }
+    html += '</div>';
 
-    if (recentErrorsEl) recentErrorsEl.innerHTML = html;
+    timelineChartEl.innerHTML = html;
+}
+
+function determineBucketSize(logs) {
+    if (logs.length < 2) return 'minute';
+
+    const first = new Date(logs[0].timestamp);
+    const last = new Date(logs[logs.length - 1].timestamp);
+    const diffHours = (last - first) / 1000 / 60 / 60;
+
+    if (diffHours < 1) return 'minute';
+    if (diffHours < 24) return 'hour';
+    return 'day';
+}
+
+function getBucketKey(timestamp, bucketSize) {
+    const date = new Date(timestamp);
+    if (bucketSize === 'minute') {
+        return date.toISOString().substring(0, 16);
+    } else if (bucketSize === 'hour') {
+        return date.toISOString().substring(0, 13) + ':00';
+    } else {
+        return date.toISOString().substring(0, 10);
+    }
+}
+
+function renderHourlyChart() {
+    if (!hourlyChartEl) return;
+
+    const logsWithTime = filteredLogs.filter(log => log.timestamp);
+
+    if (logsWithTime.length === 0) {
+        hourlyChartEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Sin datos temporales</p>';
+        return;
+    }
+
+    // Group by hour of day (0-23)
+    const hours = Array(24).fill(0);
+    logsWithTime.forEach(log => {
+        const hour = new Date(log.timestamp).getHours();
+        hours[hour]++;
+    });
+
+    const maxCount = Math.max(...hours);
+
+    let html = '<div class="hourly-chart">';
+    hours.forEach((count, hour) => {
+        const height = maxCount > 0 ? (count / maxCount * 100) : 0;
+        html += `
+            <div class="hourly-bar">
+                <div class="hourly-fill" style="height: ${height}%;" title="${hour}:00 - ${count} logs"></div>
+                <div class="hourly-label">${hour}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    hourlyChartEl.innerHTML = html;
+}
+
+function renderTopErrorsChart() {
+    if (!topErrorsChartEl) return;
+
+    const errors = filteredLogs.filter(log =>
+        log.level === 'ERROR' || log.level === 'CRITICAL'
+    );
+
+    if (errors.length === 0) {
+        topErrorsChartEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay errores</p>';
+        return;
+    }
+
+    // Count frequency of each error message
+    const messageCounts = {};
+    errors.forEach(log => {
+        const msg = truncate(log.message, 60);
+        messageCounts[msg] = (messageCounts[msg] || 0) + 1;
+    });
+
+    // Sort by frequency and take top 10
+    const sorted = Object.entries(messageCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const maxCount = sorted[0][1];
+
+    let html = '<div class="top-errors-list">';
+    sorted.forEach(([msg, count]) => {
+        const percentage = (count / maxCount * 100);
+        html += `
+            <div class="top-error-item">
+                <div class="top-error-bar">
+                    <div class="top-error-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="top-error-info">
+                    <span class="top-error-count">${count}x</span>
+                    <span class="top-error-msg">${escapeHtml(msg)}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    topErrorsChartEl.innerHTML = html;
+}
+
+function renderCriticalEvents() {
+    if (!criticalEventsEl) return;
+
+    const critical = filteredLogs
+        .filter(log => log.level === 'ERROR' || log.level === 'CRITICAL')
+        .slice(0, 20);
+
+    if (critical.length === 0) {
+        criticalEventsEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">✅ No hay eventos críticos</p>';
+        return;
+    }
+
+    let html = '<div class="critical-events-list">';
+    critical.forEach(log => {
+        html += `
+            <div class="critical-event" onclick="showLogDetail(${log.line_number - 1})">
+                <div class="critical-header">
+                    <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
+                    <span class="critical-time">${log.timestamp || 'Sin timestamp'}</span>
+                    <span class="critical-line">#${log.line_number}</span>
+                </div>
+                <div class="critical-message">${escapeHtml(truncate(log.message, 150))}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    criticalEventsEl.innerHTML = html;
+}
+
+function renderContextCharts() {
+    // Check if logs have context data (IPs, modules, etc)
+    const hasContext = filteredLogs.some(log => log.context && Object.keys(log.context).length > 0);
+
+    if (!hasContext || !contextChartsRowEl) {
+        if (contextChartsRowEl) contextChartsRowEl.style.display = 'none';
+        return;
+    }
+
+    // Collect context data
+    const contextData = {};
+    filteredLogs.forEach(log => {
+        if (log.context) {
+            Object.keys(log.context).forEach(key => {
+                if (!contextData[key]) contextData[key] = {};
+                const value = log.context[key];
+                contextData[key][value] = (contextData[key][value] || 0) + 1;
+            });
+        }
+    });
+
+    // Get top 2 context types by number of unique values
+    const topContexts = Object.keys(contextData)
+        .sort((a, b) => Object.keys(contextData[b]).length - Object.keys(contextData[a]).length)
+        .slice(0, 2);
+
+    if (topContexts.length === 0) {
+        contextChartsRowEl.style.display = 'none';
+        return;
+    }
+
+    contextChartsRowEl.style.display = 'flex';
+
+    // Render first context chart
+    if (topContexts[0]) {
+        renderContextChart(topContexts[0], contextData[topContexts[0]], contextChart1El, contextChart1TitleEl);
+    }
+
+    // Render second context chart
+    if (topContexts[1]) {
+        renderContextChart(topContexts[1], contextData[topContexts[1]], contextChart2El, contextChart2TitleEl);
+    }
+}
+
+function renderContextChart(contextName, data, element, titleElement) {
+    if (!element) return;
+
+    if (titleElement) {
+        titleElement.textContent = `📋 Top ${contextName}`;
+    }
+
+    const sorted = Object.entries(data)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const maxCount = sorted[0][1];
+
+    let html = '<div class="context-chart">';
+    sorted.forEach(([value, count]) => {
+        const percentage = (count / maxCount * 100);
+        html += `
+            <div class="context-item">
+                <div class="context-bar">
+                    <div class="context-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="context-info">
+                    <span class="context-count">${count}</span>
+                    <span class="context-value">${escapeHtml(truncate(value, 40))}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    element.innerHTML = html;
 }
 
 // =====================================
