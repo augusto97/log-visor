@@ -34,6 +34,7 @@ const logDetail = document.getElementById('logDetail');
 const tableView = document.getElementById('tableView');
 const dashboardView = document.getElementById('dashboardView');
 const compactView = document.getElementById('compactView');
+const miniView = document.getElementById('miniView');
 const timelineView = document.getElementById('timelineView');
 
 // Table elements
@@ -50,6 +51,7 @@ const recentErrorsEl = document.getElementById('recentErrors');
 
 // Other view elements
 const compactList = document.getElementById('compactList');
+const miniList = document.getElementById('miniList');
 const timelineContainer = document.getElementById('timelineContainer');
 
 // Pagination elements
@@ -328,6 +330,7 @@ function switchView(view) {
     tableView.classList.add('hidden');
     dashboardView.classList.add('hidden');
     compactView.classList.add('hidden');
+    miniView.classList.add('hidden');
     timelineView.classList.add('hidden');
 
     // Render selected view
@@ -350,6 +353,12 @@ function renderCurrentView() {
         case 'compact':
             compactView.classList.remove('hidden');
             renderCompactView();
+            paginationBar.classList.remove('hidden');
+            updatePagination();
+            break;
+        case 'mini':
+            miniView.classList.remove('hidden');
+            renderMiniView();
             paginationBar.classList.remove('hidden');
             updatePagination();
             break;
@@ -503,6 +512,29 @@ function renderCompactView() {
     });
 
     compactList.innerHTML = html;
+}
+
+// =====================================
+// MINI VIEW (Ultra Compacta)
+// =====================================
+
+function renderMiniView() {
+    const pageLogs = getCurrentPageLogs();
+    let html = '';
+
+    pageLogs.forEach(log => {
+        const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
+        html += `
+            <div class="mini-item" onclick="showLogDetail(${log.line_number - 1})">
+                <span class="mini-line">#${log.line_number}</span>
+                <span class="mini-badge ${log.level.toLowerCase()}">${log.level}</span>
+                <span class="mini-time">${time}</span>
+                <span class="mini-message">${escapeHtml(log.message)}</span>
+            </div>
+        `;
+    });
+
+    miniList.innerHTML = html;
 }
 
 // =====================================
