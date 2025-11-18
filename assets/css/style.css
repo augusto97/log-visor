@@ -840,6 +840,8 @@ input[type="file"] {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.8rem;
     line-height: 1.4;
+    min-height: 100px;
+    background: var(--bg-dark);
 }
 
 .mini-item {

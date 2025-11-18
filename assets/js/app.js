@@ -357,10 +357,14 @@ function renderCurrentView() {
             updatePagination();
             break;
         case 'mini':
-            miniView.classList.remove('hidden');
-            renderMiniView();
-            paginationBar.classList.remove('hidden');
-            updatePagination();
+            if (miniView) {
+                miniView.classList.remove('hidden');
+                renderMiniView();
+                paginationBar.classList.remove('hidden');
+                updatePagination();
+            } else {
+                console.error('miniView element not found');
+            }
             break;
         case 'timeline':
             timelineView.classList.remove('hidden');
@@ -519,22 +523,43 @@ function renderCompactView() {
 // =====================================
 
 function renderMiniView() {
+    console.log('renderMiniView called');
     const pageLogs = getCurrentPageLogs();
+    console.log('pageLogs:', pageLogs ? pageLogs.length : 'null');
+
+    if (!miniList) {
+        console.error('miniList element not found');
+        return;
+    }
+
+    if (!pageLogs || pageLogs.length === 0) {
+        console.log('No logs to display');
+        miniList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No hay logs para mostrar</div>';
+        return;
+    }
+
     let html = '';
+    console.log('Generating HTML for', pageLogs.length, 'logs');
 
     pageLogs.forEach(log => {
         const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
+        const lineNum = log.line_number || 0;
+        const level = log.level || 'INFO';
+        const message = log.message || log.raw || 'Sin mensaje';
+
         html += `
-            <div class="mini-item" onclick="showLogDetail(${log.line_number - 1})">
-                <span class="mini-line">#${log.line_number}</span>
-                <span class="mini-badge ${log.level.toLowerCase()}">${log.level}</span>
+            <div class="mini-item" onclick="showLogDetail(${lineNum - 1})">
+                <span class="mini-line">#${lineNum}</span>
+                <span class="mini-badge ${level.toLowerCase()}">${level}</span>
                 <span class="mini-time">${time}</span>
-                <span class="mini-message">${escapeHtml(log.message)}</span>
+                <span class="mini-message">${escapeHtml(message)}</span>
             </div>
         `;
     });
 
+    console.log('Setting miniList.innerHTML with', html.length, 'characters');
     miniList.innerHTML = html;
+    console.log('miniList innerHTML set successfully');
 }
 
 // =====================================
