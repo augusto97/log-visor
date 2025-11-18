@@ -808,11 +808,35 @@ input[type="file"] {
 /* Compact View (Tabla Compacta) - Solo ajustes de tamaño */
 .compact-table {
     font-size: 0.8rem;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .compact-table th,
 .compact-table td {
     padding: 6px 10px;
+}
+
+.compact-table thead {
+    background: var(--bg-medium);
+}
+
+.compact-table tbody tr {
+    background: var(--bg-medium);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.compact-table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+.compact-table tbody tr:nth-child(even) {
+    background: rgba(49, 50, 68, 0.5);
+}
+
+.compact-table tbody tr:nth-child(even):hover {
+    background: var(--bg-light);
 }
 
 /* Mini View (Ultra Compacta) */

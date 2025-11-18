@@ -508,7 +508,7 @@ function renderTableView() {
 // =====================================
 
 function renderCompactView() {
-    // Render header
+    // Render header - 4 columnas esenciales
     let headerHtml = '<tr>';
     headerHtml += '<th class="col-line">#</th>';
     headerHtml += '<th class="col-level">Nivel</th>';
@@ -521,15 +521,26 @@ function renderCompactView() {
     const pageLogs = getCurrentPageLogs();
     let bodyHtml = '';
 
-    pageLogs.forEach(entry => {
-        const time = entry.timestamp ? entry.timestamp.substring(11, 19) : '--:--:--';
-        const levelClass = entry.level ? entry.level.toLowerCase() : 'info';
+    pageLogs.forEach(logEntry => {
+        // Extract time from timestamp (HH:MM:SS)
+        const time = logEntry.timestamp ? logEntry.timestamp.substring(11, 19) : '--:--:--';
+        const levelClass = logEntry.level ? logEntry.level.toLowerCase() : 'info';
+        const lineIndex = logEntry.line_number ? (logEntry.line_number - 1) : 0;
 
-        bodyHtml += '<tr class="log-row" onclick="showLogDetail(' + (entry.line_number - 1) + ')">';
-        bodyHtml += `<td><span class="line-num">#${entry.line_number}</span></td>`;
-        bodyHtml += `<td><span class="level-badge ${levelClass}">${entry.level}</span></td>`;
-        bodyHtml += `<td><span class="timestamp">${time}</span></td>`;
-        bodyHtml += `<td><span class="message-text">${escapeHtml(truncate(entry.message, 120))}</span></td>`;
+        bodyHtml += '<tr class="log-row" onclick="showLogDetail(' + lineIndex + ')">';
+
+        // Column 1: Line number
+        bodyHtml += '<td><span class="line-num">#' + logEntry.line_number + '</span></td>';
+
+        // Column 2: Level badge
+        bodyHtml += '<td><span class="level-badge ' + levelClass + '">' + logEntry.level + '</span></td>';
+
+        // Column 3: Time
+        bodyHtml += '<td><span class="timestamp">' + time + '</span></td>';
+
+        // Column 4: Message (truncated)
+        bodyHtml += '<td><span class="message-text">' + escapeHtml(truncate(logEntry.message, 120)) + '</span></td>';
+
         bodyHtml += '</tr>';
     });
 
