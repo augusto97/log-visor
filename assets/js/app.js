@@ -156,6 +156,7 @@ if (searchInput) {
 viewBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const view = btn.dataset.view;
+        log('View button clicked:', view);
         switchView(view);
     });
 });
@@ -425,6 +426,7 @@ function filterLogs() {
 // =====================================
 
 function switchView(view) {
+    log('=== switchView CALLED with:', view);
     currentView = view;
 
     // Update active button
@@ -442,13 +444,16 @@ function switchView(view) {
     if (compactView) compactView.classList.add('hidden');
     if (miniView) miniView.classList.add('hidden');
 
+    log('All views hidden, calling renderCurrentView()');
     // Render selected view
     renderCurrentView();
 }
 
 function renderCurrentView() {
+    log('=== renderCurrentView CALLED, currentView:', currentView);
     switch (currentView) {
         case 'table':
+            log('Rendering TABLE view');
             if (tableView) tableView.classList.remove('hidden');
             renderTableView();
             if (paginationBar) {
@@ -457,12 +462,20 @@ function renderCurrentView() {
             }
             break;
         case 'dashboard':
+            log('Rendering DASHBOARD view');
             if (dashboardView) dashboardView.classList.remove('hidden');
             renderDashboard();
             if (paginationBar) paginationBar.classList.add('hidden');
             break;
         case 'compact':
-            if (compactView) compactView.classList.remove('hidden');
+            log('Rendering COMPACT view');
+            if (compactView) {
+                log('compactView exists, removing hidden class');
+                compactView.classList.remove('hidden');
+            } else {
+                logError('compactView is NULL!');
+            }
+            log('About to call renderCompactView()');
             renderCompactView();
             if (paginationBar) {
                 paginationBar.classList.remove('hidden');
@@ -470,6 +483,7 @@ function renderCurrentView() {
             }
             break;
         case 'mini':
+            log('Rendering MINI view');
             if (miniView) miniView.classList.remove('hidden');
             renderMiniView();
             if (paginationBar) {
@@ -477,6 +491,8 @@ function renderCurrentView() {
                 updatePagination();
             }
             break;
+        default:
+            logError('Unknown view:', currentView);
     }
 }
 
