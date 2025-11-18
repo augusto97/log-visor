@@ -33,9 +33,7 @@ const logDetail = document.getElementById('logDetail');
 // View containers
 const tableView = document.getElementById('tableView');
 const dashboardView = document.getElementById('dashboardView');
-const compactView = document.getElementById('compactView');
 const miniView = document.getElementById('miniView');
-const timelineView = document.getElementById('timelineView');
 
 // Table elements
 const logTableHead = document.getElementById('logTableHead');
@@ -50,9 +48,7 @@ const levelChartEl = document.getElementById('levelChart');
 const recentErrorsEl = document.getElementById('recentErrors');
 
 // Other view elements
-const compactList = document.getElementById('compactList');
 const miniList = document.getElementById('miniList');
-const timelineContainer = document.getElementById('timelineContainer');
 
 // Pagination elements
 const paginationBar = document.getElementById('paginationBar');
@@ -329,9 +325,7 @@ function switchView(view) {
     // Hide all views
     tableView.classList.add('hidden');
     dashboardView.classList.add('hidden');
-    compactView.classList.add('hidden');
     miniView.classList.add('hidden');
-    timelineView.classList.add('hidden');
 
     // Render selected view
     renderCurrentView();
@@ -350,25 +344,9 @@ function renderCurrentView() {
             renderDashboard();
             paginationBar.classList.add('hidden');
             break;
-        case 'compact':
-            compactView.classList.remove('hidden');
-            renderCompactView();
-            paginationBar.classList.remove('hidden');
-            updatePagination();
-            break;
         case 'mini':
-            if (miniView) {
-                miniView.classList.remove('hidden');
-                renderMiniView();
-                paginationBar.classList.remove('hidden');
-                updatePagination();
-            } else {
-                console.error('miniView element not found');
-            }
-            break;
-        case 'timeline':
-            timelineView.classList.remove('hidden');
-            renderTimelineView();
+            miniView.classList.remove('hidden');
+            renderMiniView();
             paginationBar.classList.remove('hidden');
             updatePagination();
             break;
@@ -495,51 +473,22 @@ function renderRecentErrors() {
 }
 
 // =====================================
-// COMPACT VIEW
-// =====================================
-
-function renderCompactView() {
-    const pageLogs = getCurrentPageLogs();
-    let html = '';
-
-    pageLogs.forEach(log => {
-        html += `
-            <div class="compact-item" onclick="showLogDetail(${log.line_number - 1})">
-                <div class="compact-header">
-                    <span class="compact-line">#${log.line_number}</span>
-                    <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
-                    <span class="compact-time">${log.timestamp || 'Sin timestamp'}</span>
-                </div>
-                <div class="compact-message">${escapeHtml(log.message)}</div>
-            </div>
-        `;
-    });
-
-    compactList.innerHTML = html;
-}
-
-// =====================================
 // MINI VIEW (Ultra Compacta)
 // =====================================
 
 function renderMiniView() {
-    console.log('renderMiniView called');
     const pageLogs = getCurrentPageLogs();
-    console.log('pageLogs:', pageLogs ? pageLogs.length : 'null');
 
     if (!miniList) {
-        console.error('miniList element not found');
         return;
     }
 
     if (!pageLogs || pageLogs.length === 0) {
-        console.log('No logs to display');
         miniList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No hay logs para mostrar</div>';
         return;
     }
 
     let html = '';
-    console.log('Generating HTML for', pageLogs.length, 'logs');
 
     pageLogs.forEach(log => {
         const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
@@ -557,58 +506,7 @@ function renderMiniView() {
         `;
     });
 
-    console.log('Setting miniList.innerHTML with', html.length, 'characters');
     miniList.innerHTML = html;
-    console.log('miniList innerHTML set successfully');
-}
-
-// =====================================
-// TIMELINE VIEW
-// =====================================
-
-function renderTimelineView() {
-    const pageLogs = getCurrentPageLogs();
-
-    // Group by date
-    const dateGroups = {};
-    pageLogs.forEach(log => {
-        const date = log.timestamp ? log.timestamp.substring(0, 10) : 'Sin fecha';
-        if (!dateGroups[date]) {
-            dateGroups[date] = [];
-        }
-        dateGroups[date].push(log);
-    });
-
-    let html = '';
-
-    Object.keys(dateGroups).sort().reverse().forEach(date => {
-        html += `
-            <div class="timeline-group">
-                <div class="timeline-date">📅 ${date}</div>
-                <div class="timeline-items">
-        `;
-
-        dateGroups[date].forEach(log => {
-            const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
-            html += `
-                <div class="timeline-item ${log.level.toLowerCase()}" onclick="showLogDetail(${log.line_number - 1})">
-                    <div class="timeline-header">
-                        <span class="timeline-time">${time}</span>
-                        <span class="level-badge ${log.level.toLowerCase()}">${log.level}</span>
-                        <span class="timeline-line">#${log.line_number}</span>
-                    </div>
-                    <div class="timeline-message">${escapeHtml(truncate(log.message, 150))}</div>
-                </div>
-            `;
-        });
-
-        html += `
-                </div>
-            </div>
-        `;
-    });
-
-    timelineContainer.innerHTML = html;
 }
 
 // =====================================
