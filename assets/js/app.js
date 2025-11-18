@@ -584,15 +584,15 @@ function renderCompactView() {
 
     let bodyHtml = '';
 
-    pageLogs.forEach((log, index) => {
-        const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
-        const levelClass = log.level ? log.level.toLowerCase() : 'info';
+    pageLogs.forEach((entry, index) => {
+        const time = entry.timestamp ? entry.timestamp.substring(11, 19) : '--:--:--';
+        const levelClass = entry.level ? entry.level.toLowerCase() : 'info';
 
-        bodyHtml += `<tr class="compact-row" onclick="showLogDetail(${log.line_number - 1})">`;
-        bodyHtml += `<td class="col-line-compact"><span class="line-num-compact">#${log.line_number}</span></td>`;
-        bodyHtml += `<td class="col-level-compact"><span class="level-badge-compact ${levelClass}">${log.level}</span></td>`;
+        bodyHtml += `<tr class="compact-row" onclick="showLogDetail(${entry.line_number - 1})">`;
+        bodyHtml += `<td class="col-line-compact"><span class="line-num-compact">#${entry.line_number}</span></td>`;
+        bodyHtml += `<td class="col-level-compact"><span class="level-badge-compact ${levelClass}">${entry.level}</span></td>`;
         bodyHtml += `<td class="col-time-compact"><span class="time-compact">${time}</span></td>`;
-        bodyHtml += `<td class="col-message-compact">${escapeHtml(truncate(log.message, 120))}</td>`;
+        bodyHtml += `<td class="col-message-compact">${escapeHtml(truncate(entry.message, 120))}</td>`;
         bodyHtml += '</tr>';
 
         if (index === 0) {
