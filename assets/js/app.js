@@ -281,8 +281,19 @@ function detectColumns() {
 }
 
 function populateLevelFilter() {
-    if (!levelSelect) return;
-    if (!currentStats || Object.keys(currentStats).length === 0) return;
+    console.log('=== populateLevelFilter CALLED ===');
+    console.log('levelSelect:', levelSelect);
+    console.log('currentStats:', currentStats);
+
+    if (!levelSelect) {
+        console.error('levelSelect is null!');
+        return;
+    }
+
+    if (!currentStats || Object.keys(currentStats).length === 0) {
+        console.error('currentStats is empty or null!');
+        return;
+    }
 
     // Define order of severity (common levels first)
     const severityOrder = {
@@ -307,6 +318,8 @@ function populateLevelFilter() {
         return a.localeCompare(b);
     });
 
+    console.log('Levels found:', levels);
+
     // Clear current options
     levelSelect.innerHTML = '<option value="ALL">Todos los niveles</option>';
 
@@ -317,7 +330,10 @@ function populateLevelFilter() {
         option.value = level;
         option.textContent = `${level} (${count})`;
         levelSelect.appendChild(option);
+        console.log(`Added option: ${level} (${count})`);
     });
+
+    console.log('Final select HTML:', levelSelect.innerHTML);
 }
 
 function updateFileStats() {
