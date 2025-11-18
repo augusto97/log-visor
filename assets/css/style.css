@@ -833,6 +833,96 @@ input[type="file"] {
     color: var(--text-primary);
 }
 
+/* Mini View (Ultra Compacta) */
+.mini-list {
+    display: flex;
+    flex-direction: column;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.mini-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.mini-item:hover {
+    background: var(--bg-light);
+}
+
+.mini-item:last-child {
+    border-bottom: none;
+}
+
+.mini-line {
+    flex-shrink: 0;
+    width: 50px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.mini-badge {
+    flex-shrink: 0;
+    width: 60px;
+    text-align: center;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.mini-badge.error {
+    background: rgba(243, 139, 168, 0.15);
+    color: var(--accent-red);
+}
+
+.mini-badge.critical {
+    background: rgba(243, 139, 168, 0.2);
+    color: var(--accent-red);
+}
+
+.mini-badge.warning {
+    background: rgba(250, 179, 135, 0.15);
+    color: var(--accent-orange);
+}
+
+.mini-badge.info {
+    background: rgba(137, 180, 250, 0.15);
+    color: var(--accent-blue);
+}
+
+.mini-badge.debug {
+    background: rgba(108, 112, 134, 0.15);
+    color: var(--text-muted);
+}
+
+.mini-badge.notice {
+    background: rgba(166, 227, 161, 0.15);
+    color: var(--accent-green);
+}
+
+.mini-time {
+    flex-shrink: 0;
+    width: 80px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.mini-message {
+    flex: 1;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Timeline View */
 .timeline-container {
     max-width: 900px;
