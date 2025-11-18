@@ -48,6 +48,7 @@
         <div class="view-selector">
             <button class="view-btn active" data-view="table" title="Vista de tabla detallada">📋 Tabla</button>
             <button class="view-btn" data-view="dashboard" title="Dashboard con estadísticas">📊 Dashboard</button>
+            <button class="view-btn" data-view="compact" title="Tabla compacta">📑 Compacta</button>
             <button class="view-btn" data-view="mini" title="Vista ultra compacta">📝 Mini</button>
         </div>
 
@@ -133,6 +134,14 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Compact View (Tabla Compacta) -->
+    <div class="view-container hidden" id="compactView">
+        <table class="compact-table">
+            <thead id="compactTableHead"></thead>
+            <tbody id="compactTableBody"></tbody>
+        </table>
     </div>
 
     <!-- Mini View (Ultra Compacta) -->

@@ -1,7 +1,10 @@
 // =====================================
 // GLOBAL STATE
 // =====================================
-console.log('app.js loaded successfully');
+// Debug mode - set to true to enable console logs
+const DEBUG = false;
+const log = (...args) => { if (DEBUG) console.log(...args); };
+const logError = (...args) => { if (DEBUG) console.error(...args); };
 
 let currentLogs = [];
 let filteredLogs = [];
@@ -35,11 +38,16 @@ const logDetail = document.getElementById('logDetail');
 // View containers
 const tableView = document.getElementById('tableView');
 const dashboardView = document.getElementById('dashboardView');
+const compactView = document.getElementById('compactView');
 const miniView = document.getElementById('miniView');
 
 // Table elements
 const logTableHead = document.getElementById('logTableHead');
 const logTableBody = document.getElementById('logTableBody');
+
+// Compact table elements
+const compactTableHead = document.getElementById('compactTableHead');
+const compactTableBody = document.getElementById('compactTableBody');
 
 // Dashboard elements
 const totalLogsEl = document.getElementById('totalLogs');
@@ -63,10 +71,7 @@ const pageSizeSelect = document.getElementById('pageSize');
 // View selector buttons
 const viewBtns = document.querySelectorAll('.view-btn');
 
-console.log('DOM elements loaded:');
-console.log('levelSelect:', levelSelect);
-console.log('uploadBox:', uploadBox);
-console.log('controlsBar:', controlsBar);
+log('DOM elements loaded - levelSelect:', levelSelect, 'uploadBox:', uploadBox, 'controlsBar:', controlsBar);
 
 // =====================================
 // EVENT LISTENERS
@@ -231,16 +236,16 @@ function resetUpload() {
 // =====================================
 
 function loadLogs() {
-    console.log('loadLogs() called');
+    log('loadLogs() called');
     fetch('api.php?action=parse&page=1&per_page=10000')
         .then(response => response.json())
         .then(data => {
-            console.log('API response received:', data);
+            log('API response received:', data);
             if (data.success) {
                 currentLogs = data.data.entries;
                 filteredLogs = [...currentLogs];
                 currentStats = data.data.stats;
-                console.log('Data loaded - Logs:', currentLogs.length, 'Stats:', currentStats);
+                log('Data loaded - Logs:', currentLogs.length, 'Stats:', currentStats);
 
                 // Hide upload, show viewer
                 if (uploadContainer) uploadContainer.classList.add('hidden');
@@ -256,10 +261,10 @@ function loadLogs() {
                 detectColumns();
 
                 // Populate level filter dynamically
-                console.log('About to call populateLevelFilter...');
-                console.log('currentStats before call:', currentStats);
+                log('About to call populateLevelFilter...');
+                log('currentStats before call:', currentStats);
                 populateLevelFilter();
-                console.log('After populateLevelFilter call');
+                log('After populateLevelFilter call');
 
                 // Render default view
                 switchView('table');
@@ -294,17 +299,17 @@ function detectColumns() {
 }
 
 function populateLevelFilter() {
-    console.log('=== populateLevelFilter CALLED ===');
-    console.log('levelSelect:', levelSelect);
-    console.log('currentStats:', currentStats);
+    log('=== populateLevelFilter CALLED ===');
+    log('levelSelect:', levelSelect);
+    log('currentStats:', currentStats);
 
     if (!levelSelect) {
-        console.error('levelSelect is null!');
+        logError('levelSelect is null!');
         return;
     }
 
     if (!currentStats || Object.keys(currentStats).length === 0) {
-        console.error('currentStats is empty or null!');
+        logError('currentStats is empty or null!');
         return;
     }
 
@@ -331,7 +336,7 @@ function populateLevelFilter() {
         return a.localeCompare(b);
     });
 
-    console.log('Levels found:', levels);
+    log('Levels found:', levels);
 
     // Clear current options
     levelSelect.innerHTML = '<option value="ALL">Todos los niveles</option>';
@@ -343,10 +348,10 @@ function populateLevelFilter() {
         option.value = level;
         option.textContent = `${level} (${count})`;
         levelSelect.appendChild(option);
-        console.log(`Added option: ${level} (${count})`);
+        log(`Added option: ${level} (${count})`);
     });
 
-    console.log('Final select HTML:', levelSelect.innerHTML);
+    log('Final select HTML:', levelSelect.innerHTML);
 }
 
 function updateFileStats() {
@@ -417,6 +422,7 @@ function switchView(view) {
     // Hide all views
     if (tableView) tableView.classList.add('hidden');
     if (dashboardView) dashboardView.classList.add('hidden');
+    if (compactView) compactView.classList.add('hidden');
     if (miniView) miniView.classList.add('hidden');
 
     // Render selected view
@@ -437,6 +443,14 @@ function renderCurrentView() {
             if (dashboardView) dashboardView.classList.remove('hidden');
             renderDashboard();
             if (paginationBar) paginationBar.classList.add('hidden');
+            break;
+        case 'compact':
+            if (compactView) compactView.classList.remove('hidden');
+            renderCompactView();
+            if (paginationBar) {
+                paginationBar.classList.remove('hidden');
+                updatePagination();
+            }
             break;
         case 'mini':
             if (miniView) miniView.classList.remove('hidden');
@@ -496,6 +510,39 @@ function renderTableView() {
     });
 
     if (logTableBody) logTableBody.innerHTML = bodyHtml;
+}
+
+// =====================================
+// COMPACT VIEW (Tabla Compacta)
+// =====================================
+
+function renderCompactView() {
+    // Render header - only essential columns
+    let headerHtml = '<tr>';
+    headerHtml += '<th class="col-line-compact">#</th>';
+    headerHtml += '<th class="col-level-compact">Nivel</th>';
+    headerHtml += '<th class="col-time-compact">Hora</th>';
+    headerHtml += '<th class="col-message-compact">Mensaje</th>';
+    headerHtml += '</tr>';
+    if (compactTableHead) compactTableHead.innerHTML = headerHtml;
+
+    // Render body
+    const pageLogs = getCurrentPageLogs();
+    let bodyHtml = '';
+
+    pageLogs.forEach(log => {
+        const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
+        const levelClass = log.level ? log.level.toLowerCase() : 'info';
+
+        bodyHtml += `<tr class="compact-row" onclick="showLogDetail(${log.line_number - 1})">`;
+        bodyHtml += `<td class="col-line-compact"><span class="line-num-compact">#${log.line_number}</span></td>`;
+        bodyHtml += `<td class="col-level-compact"><span class="level-badge-compact ${levelClass}">${log.level}</span></td>`;
+        bodyHtml += `<td class="col-time-compact"><span class="time-compact">${time}</span></td>`;
+        bodyHtml += `<td class="col-message-compact">${escapeHtml(truncate(log.message, 120))}</td>`;
+        bodyHtml += '</tr>';
+    });
+
+    if (compactTableBody) compactTableBody.innerHTML = bodyHtml;
 }
 
 // =====================================
