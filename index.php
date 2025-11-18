@@ -58,13 +58,7 @@
             </div>
             <div class="filter-group">
                 <select class="filter-select-sm" id="levelSelect">
-                    <option value="ALL">Todos</option>
-                    <option value="ERROR">Error</option>
-                    <option value="CRITICAL">Critical</option>
-                    <option value="WARNING">Warning</option>
-                    <option value="INFO">Info</option>
-                    <option value="DEBUG">Debug</option>
-                    <option value="NOTICE">Notice</option>
+                    <option value="ALL">Todos los niveles</option>
                 </select>
             </div>
             <button class="btn btn-primary btn-sm" id="applyFilters">Filtrar</button>

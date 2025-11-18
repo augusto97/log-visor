@@ -245,6 +245,9 @@ function loadLogs() {
                 // Detect columns
                 detectColumns();
 
+                // Populate level filter dynamically
+                populateLevelFilter();
+
                 // Render default view
                 switchView('table');
             } else {
@@ -275,6 +278,53 @@ function detectColumns() {
 
     columns.push('message');
     tableColumns = columns;
+}
+
+function populateLevelFilter() {
+    if (!levelSelect) return;
+
+    // Get all unique levels from the logs
+    const levels = new Set();
+    currentLogs.forEach(log => {
+        if (log.level) {
+            levels.add(log.level);
+        }
+    });
+
+    // Define order of severity (common levels first)
+    const severityOrder = {
+        'CRITICAL': 1,
+        'ERROR': 2,
+        'WARNING': 3,
+        'NOTICE': 4,
+        'INFO': 5,
+        'DEBUG': 6,
+        'TRACE': 7,
+        'ACCESS': 8
+    };
+
+    // Sort levels by severity, then alphabetically
+    const sortedLevels = Array.from(levels).sort((a, b) => {
+        const orderA = severityOrder[a.toUpperCase()] || 999;
+        const orderB = severityOrder[b.toUpperCase()] || 999;
+
+        if (orderA !== orderB) {
+            return orderA - orderB;
+        }
+        return a.localeCompare(b);
+    });
+
+    // Clear current options except "ALL"
+    levelSelect.innerHTML = '<option value="ALL">Todos los niveles</option>';
+
+    // Add level options with counts
+    sortedLevels.forEach(level => {
+        const count = currentStats[level] || 0;
+        const option = document.createElement('option');
+        option.value = level;
+        option.textContent = `${level} (${count})`;
+        levelSelect.appendChild(option);
+    });
 }
 
 function updateFileStats() {
