@@ -523,7 +523,9 @@ function renderCompactView() {
 // =====================================
 
 function renderMiniView() {
+    console.log('renderMiniView called');
     const pageLogs = getCurrentPageLogs();
+    console.log('pageLogs:', pageLogs ? pageLogs.length : 'null');
 
     if (!miniList) {
         console.error('miniList element not found');
@@ -531,11 +533,13 @@ function renderMiniView() {
     }
 
     if (!pageLogs || pageLogs.length === 0) {
+        console.log('No logs to display');
         miniList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No hay logs para mostrar</div>';
         return;
     }
 
     let html = '';
+    console.log('Generating HTML for', pageLogs.length, 'logs');
 
     pageLogs.forEach(log => {
         const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
@@ -553,7 +557,9 @@ function renderMiniView() {
         `;
     });
 
+    console.log('Setting miniList.innerHTML with', html.length, 'characters');
     miniList.innerHTML = html;
+    console.log('miniList innerHTML set successfully');
 }
 
 // =====================================
