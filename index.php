@@ -21,6 +21,9 @@
             </div>
         </div>
         <div class="top-bar-right">
+            <button class="btn btn-secondary btn-sm" id="debugToggle" title="Activar/Desactivar modo debug">
+                🐛 Debug: <span id="debugStatus">OFF</span>
+            </button>
             <button class="btn btn-secondary btn-sm hidden" id="closeFileBtn">✕ Cerrar</button>
         </div>
     </div>
@@ -138,10 +141,12 @@
 
     <!-- Compact View (Tabla Compacta) -->
     <div class="view-container hidden" id="compactView">
-        <table class="compact-table">
-            <thead id="compactTableHead"></thead>
-            <tbody id="compactTableBody"></tbody>
-        </table>
+        <div class="log-viewer">
+            <table class="compact-table">
+                <thead id="compactTableHead"></thead>
+                <tbody id="compactTableBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Mini View (Ultra Compacta) -->

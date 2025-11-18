@@ -1,8 +1,8 @@
 // =====================================
 // GLOBAL STATE
 // =====================================
-// Debug mode - set to true to enable console logs
-const DEBUG = false;
+// Debug mode - can be toggled via UI button
+let DEBUG = localStorage.getItem('debugMode') === 'true' || false;
 const log = (...args) => { if (DEBUG) console.log(...args); };
 const logError = (...args) => { if (DEBUG) console.error(...args); };
 
@@ -70,6 +70,10 @@ const pageSizeSelect = document.getElementById('pageSize');
 
 // View selector buttons
 const viewBtns = document.querySelectorAll('.view-btn');
+
+// Debug toggle
+const debugToggle = document.getElementById('debugToggle');
+const debugStatus = document.getElementById('debugStatus');
 
 log('DOM elements loaded - levelSelect:', levelSelect, 'uploadBox:', uploadBox, 'controlsBar:', controlsBar);
 
@@ -148,6 +152,12 @@ viewBtns.forEach(btn => {
         switchView(view);
     });
 });
+
+// Debug toggle
+if (debugToggle) {
+    debugToggle.addEventListener('click', toggleDebugMode);
+    updateDebugStatus();
+}
 
 // Pagination
 if (prevPage) {
@@ -777,6 +787,33 @@ function escapeHtml(text) {
 function truncate(str, len) {
     if (!str) return '';
     return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+// Debug toggle functions
+function toggleDebugMode() {
+    DEBUG = !DEBUG;
+    localStorage.setItem('debugMode', DEBUG);
+    updateDebugStatus();
+
+    if (DEBUG) {
+        console.log('🐛 Debug mode ENABLED');
+        console.log('Current state:', {
+            logs: currentLogs.length,
+            filteredLogs: filteredLogs.length,
+            stats: currentStats,
+            currentView: currentView
+        });
+    } else {
+        console.log('🐛 Debug mode DISABLED');
+    }
+}
+
+function updateDebugStatus() {
+    if (debugStatus) {
+        debugStatus.textContent = DEBUG ? 'ON' : 'OFF';
+        debugStatus.style.color = DEBUG ? '#a6e3a1' : '#f38ba8';
+        debugStatus.style.fontWeight = DEBUG ? 'bold' : 'normal';
+    }
 }
 
 // Make functions global for onclick handlers
