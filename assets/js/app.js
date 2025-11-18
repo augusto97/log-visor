@@ -357,10 +357,14 @@ function renderCurrentView() {
             updatePagination();
             break;
         case 'mini':
-            miniView.classList.remove('hidden');
-            renderMiniView();
-            paginationBar.classList.remove('hidden');
-            updatePagination();
+            if (miniView) {
+                miniView.classList.remove('hidden');
+                renderMiniView();
+                paginationBar.classList.remove('hidden');
+                updatePagination();
+            } else {
+                console.error('miniView element not found');
+            }
             break;
         case 'timeline':
             timelineView.classList.remove('hidden');
@@ -520,16 +524,31 @@ function renderCompactView() {
 
 function renderMiniView() {
     const pageLogs = getCurrentPageLogs();
+
+    if (!miniList) {
+        console.error('miniList element not found');
+        return;
+    }
+
+    if (!pageLogs || pageLogs.length === 0) {
+        miniList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No hay logs para mostrar</div>';
+        return;
+    }
+
     let html = '';
 
     pageLogs.forEach(log => {
         const time = log.timestamp ? log.timestamp.substring(11, 19) : '--:--:--';
+        const lineNum = log.line_number || 0;
+        const level = log.level || 'INFO';
+        const message = log.message || log.raw || 'Sin mensaje';
+
         html += `
-            <div class="mini-item" onclick="showLogDetail(${log.line_number - 1})">
-                <span class="mini-line">#${log.line_number}</span>
-                <span class="mini-badge ${log.level.toLowerCase()}">${log.level}</span>
+            <div class="mini-item" onclick="showLogDetail(${lineNum - 1})">
+                <span class="mini-line">#${lineNum}</span>
+                <span class="mini-badge ${level.toLowerCase()}">${level}</span>
                 <span class="mini-time">${time}</span>
-                <span class="mini-message">${escapeHtml(log.message)}</span>
+                <span class="mini-message">${escapeHtml(message)}</span>
             </div>
         `;
     });
