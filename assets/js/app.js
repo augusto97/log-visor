@@ -156,7 +156,6 @@ if (searchInput) {
 viewBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const view = btn.dataset.view;
-        log('View button clicked:', view);
         switchView(view);
     });
 });
@@ -254,16 +253,13 @@ function resetUpload() {
 // =====================================
 
 function loadLogs() {
-    log('loadLogs() called');
     fetch('api.php?action=parse&page=1&per_page=10000')
         .then(response => response.json())
         .then(data => {
-            log('API response received:', data);
             if (data.success) {
                 currentLogs = data.data.entries;
                 filteredLogs = [...currentLogs];
                 currentStats = data.data.stats;
-                log('Data loaded - Logs:', currentLogs.length, 'Stats:', currentStats);
 
                 // Hide upload, show viewer
                 if (uploadContainer) uploadContainer.classList.add('hidden');
@@ -279,10 +275,7 @@ function loadLogs() {
                 detectColumns();
 
                 // Populate level filter dynamically
-                log('About to call populateLevelFilter...');
-                log('currentStats before call:', currentStats);
                 populateLevelFilter();
-                log('After populateLevelFilter call');
 
                 // Render default view
                 switchView('table');
@@ -317,19 +310,7 @@ function detectColumns() {
 }
 
 function populateLevelFilter() {
-    log('=== populateLevelFilter CALLED ===');
-    log('levelSelect:', levelSelect);
-    log('currentStats:', currentStats);
-
-    if (!levelSelect) {
-        logError('levelSelect is null!');
-        return;
-    }
-
-    if (!currentStats || Object.keys(currentStats).length === 0) {
-        logError('currentStats is empty or null!');
-        return;
-    }
+    if (!levelSelect || !currentStats || Object.keys(currentStats).length === 0) return;
 
     // Define order of severity (common levels first)
     const severityOrder = {
@@ -347,14 +328,9 @@ function populateLevelFilter() {
     const levels = Object.keys(currentStats).sort((a, b) => {
         const orderA = severityOrder[a.toUpperCase()] || 999;
         const orderB = severityOrder[b.toUpperCase()] || 999;
-
-        if (orderA !== orderB) {
-            return orderA - orderB;
-        }
+        if (orderA !== orderB) return orderA - orderB;
         return a.localeCompare(b);
     });
-
-    log('Levels found:', levels);
 
     // Clear current options
     levelSelect.innerHTML = '<option value="ALL">Todos los niveles</option>';
@@ -366,10 +342,7 @@ function populateLevelFilter() {
         option.value = level;
         option.textContent = `${level} (${count})`;
         levelSelect.appendChild(option);
-        log(`Added option: ${level} (${count})`);
     });
-
-    log('Final select HTML:', levelSelect.innerHTML);
 }
 
 function updateFileStats() {
@@ -426,7 +399,6 @@ function filterLogs() {
 // =====================================
 
 function switchView(view) {
-    log('=== switchView CALLED with:', view);
     currentView = view;
 
     // Update active button
@@ -444,16 +416,13 @@ function switchView(view) {
     if (compactView) compactView.classList.add('hidden');
     if (miniView) miniView.classList.add('hidden');
 
-    log('All views hidden, calling renderCurrentView()');
     // Render selected view
     renderCurrentView();
 }
 
 function renderCurrentView() {
-    log('=== renderCurrentView CALLED, currentView:', currentView);
     switch (currentView) {
         case 'table':
-            log('Rendering TABLE view');
             if (tableView) tableView.classList.remove('hidden');
             renderTableView();
             if (paginationBar) {
@@ -462,20 +431,12 @@ function renderCurrentView() {
             }
             break;
         case 'dashboard':
-            log('Rendering DASHBOARD view');
             if (dashboardView) dashboardView.classList.remove('hidden');
             renderDashboard();
             if (paginationBar) paginationBar.classList.add('hidden');
             break;
         case 'compact':
-            log('Rendering COMPACT view');
-            if (compactView) {
-                log('compactView exists, removing hidden class');
-                compactView.classList.remove('hidden');
-            } else {
-                logError('compactView is NULL!');
-            }
-            log('About to call renderCompactView()');
+            if (compactView) compactView.classList.remove('hidden');
             renderCompactView();
             if (paginationBar) {
                 paginationBar.classList.remove('hidden');
@@ -483,7 +444,6 @@ function renderCurrentView() {
             }
             break;
         case 'mini':
-            log('Rendering MINI view');
             if (miniView) miniView.classList.remove('hidden');
             renderMiniView();
             if (paginationBar) {
@@ -491,8 +451,6 @@ function renderCurrentView() {
                 updatePagination();
             }
             break;
-        default:
-            logError('Unknown view:', currentView);
     }
 }
 
@@ -550,64 +508,32 @@ function renderTableView() {
 // =====================================
 
 function renderCompactView() {
-    log('=== renderCompactView CALLED ===');
-    log('compactTableHead:', compactTableHead);
-    log('compactTableBody:', compactTableBody);
-
-    // Render header - only essential columns
+    // Render header
     let headerHtml = '<tr>';
-    headerHtml += '<th class="col-line-compact">#</th>';
-    headerHtml += '<th class="col-level-compact">Nivel</th>';
-    headerHtml += '<th class="col-time-compact">Hora</th>';
-    headerHtml += '<th class="col-message-compact">Mensaje</th>';
+    headerHtml += '<th class="col-line">#</th>';
+    headerHtml += '<th class="col-level">Nivel</th>';
+    headerHtml += '<th class="col-timestamp">Hora</th>';
+    headerHtml += '<th class="col-message">Mensaje</th>';
     headerHtml += '</tr>';
-
-    log('Setting header HTML');
-    if (compactTableHead) {
-        compactTableHead.innerHTML = headerHtml;
-        log('Header set successfully');
-    } else {
-        logError('compactTableHead is null!');
-    }
+    if (compactTableHead) compactTableHead.innerHTML = headerHtml;
 
     // Render body
     const pageLogs = getCurrentPageLogs();
-    log('Page logs count:', pageLogs ? pageLogs.length : 0);
-
-    if (!pageLogs || pageLogs.length === 0) {
-        log('No logs to display in compact view');
-        if (compactTableBody) {
-            compactTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">No hay logs para mostrar</td></tr>';
-        }
-        return;
-    }
-
     let bodyHtml = '';
 
-    pageLogs.forEach((entry, index) => {
+    pageLogs.forEach(entry => {
         const time = entry.timestamp ? entry.timestamp.substring(11, 19) : '--:--:--';
         const levelClass = entry.level ? entry.level.toLowerCase() : 'info';
 
-        bodyHtml += `<tr class="compact-row" onclick="showLogDetail(${entry.line_number - 1})">`;
-        bodyHtml += `<td class="col-line-compact"><span class="line-num-compact">#${entry.line_number}</span></td>`;
-        bodyHtml += `<td class="col-level-compact"><span class="level-badge-compact ${levelClass}">${entry.level}</span></td>`;
-        bodyHtml += `<td class="col-time-compact"><span class="time-compact">${time}</span></td>`;
-        bodyHtml += `<td class="col-message-compact">${escapeHtml(truncate(entry.message, 120))}</td>`;
+        bodyHtml += '<tr class="log-row" onclick="showLogDetail(' + (entry.line_number - 1) + ')">';
+        bodyHtml += `<td><span class="line-num">#${entry.line_number}</span></td>`;
+        bodyHtml += `<td><span class="level-badge ${levelClass}">${entry.level}</span></td>`;
+        bodyHtml += `<td><span class="timestamp">${time}</span></td>`;
+        bodyHtml += `<td><span class="message-text">${escapeHtml(truncate(entry.message, 120))}</span></td>`;
         bodyHtml += '</tr>';
-
-        if (index === 0) {
-            log('First row HTML:', bodyHtml);
-        }
     });
 
-    log('Total body HTML length:', bodyHtml.length);
-    log('Setting body HTML');
-    if (compactTableBody) {
-        compactTableBody.innerHTML = bodyHtml;
-        log('Body set successfully, rows:', compactTableBody.children.length);
-    } else {
-        logError('compactTableBody is null!');
-    }
+    if (compactTableBody) compactTableBody.innerHTML = bodyHtml;
 }
 
 // =====================================
