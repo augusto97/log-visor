@@ -1,6 +1,8 @@
 // =====================================
 // GLOBAL STATE
 // =====================================
+console.log('app.js loaded successfully');
+
 let currentLogs = [];
 let filteredLogs = [];
 let currentStats = {};
@@ -60,6 +62,11 @@ const pageSizeSelect = document.getElementById('pageSize');
 
 // View selector buttons
 const viewBtns = document.querySelectorAll('.view-btn');
+
+console.log('DOM elements loaded:');
+console.log('levelSelect:', levelSelect);
+console.log('uploadBox:', uploadBox);
+console.log('controlsBar:', controlsBar);
 
 // =====================================
 // EVENT LISTENERS
@@ -224,13 +231,16 @@ function resetUpload() {
 // =====================================
 
 function loadLogs() {
+    console.log('loadLogs() called');
     fetch('api.php?action=parse&page=1&per_page=10000')
         .then(response => response.json())
         .then(data => {
+            console.log('API response received:', data);
             if (data.success) {
                 currentLogs = data.data.entries;
                 filteredLogs = [...currentLogs];
                 currentStats = data.data.stats;
+                console.log('Data loaded - Logs:', currentLogs.length, 'Stats:', currentStats);
 
                 // Hide upload, show viewer
                 if (uploadContainer) uploadContainer.classList.add('hidden');
@@ -246,7 +256,10 @@ function loadLogs() {
                 detectColumns();
 
                 // Populate level filter dynamically
+                console.log('About to call populateLevelFilter...');
+                console.log('currentStats before call:', currentStats);
                 populateLevelFilter();
+                console.log('After populateLevelFilter call');
 
                 // Render default view
                 switchView('table');
