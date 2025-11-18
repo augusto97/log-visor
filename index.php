@@ -48,9 +48,7 @@
         <div class="view-selector">
             <button class="view-btn active" data-view="table" title="Vista de tabla detallada">📋 Tabla</button>
             <button class="view-btn" data-view="dashboard" title="Dashboard con estadísticas">📊 Dashboard</button>
-            <button class="view-btn" data-view="compact" title="Vista compacta">📑 Compacta</button>
             <button class="view-btn" data-view="mini" title="Vista ultra compacta">📝 Mini</button>
-            <button class="view-btn" data-view="timeline" title="Timeline cronológico">⏱️ Timeline</button>
         </div>
 
         <!-- Filters -->
@@ -143,19 +141,9 @@
         </div>
     </div>
 
-    <!-- Compact View -->
-    <div class="view-container hidden" id="compactView">
-        <div class="compact-list" id="compactList"></div>
-    </div>
-
     <!-- Mini View (Ultra Compacta) -->
     <div class="view-container hidden" id="miniView">
         <div class="mini-list" id="miniList"></div>
-    </div>
-
-    <!-- Timeline View -->
-    <div class="view-container hidden" id="timelineView">
-        <div class="timeline-container" id="timelineContainer"></div>
     </div>
 
     <!-- Pagination -->
