@@ -141,12 +141,10 @@
 
     <!-- Compact View (Tabla Compacta) -->
     <div class="view-container hidden" id="compactView">
-        <div class="log-viewer">
-            <table class="compact-table">
-                <thead id="compactTableHead"></thead>
-                <tbody id="compactTableBody"></tbody>
-            </table>
-        </div>
+        <table class="compact-table">
+            <thead id="compactTableHead"></thead>
+            <tbody id="compactTableBody"></tbody>
+        </table>
     </div>
 
     <!-- Mini View (Ultra Compacta) -->
