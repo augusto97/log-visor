@@ -1,18 +1,6 @@
 // =====================================
 // GLOBAL STATE
 // =====================================
-// Debug mode - can be toggled via UI button
-let DEBUG = localStorage.getItem('debugMode') === 'true' || false;
-
-// Log functions that read DEBUG dynamically
-function log(...args) {
-    if (DEBUG) console.log(...args);
-}
-
-function logError(...args) {
-    if (DEBUG) console.error(...args);
-}
-
 let currentLogs = [];
 let filteredLogs = [];
 let currentStats = {};
@@ -53,7 +41,6 @@ const logTableHead = document.getElementById('logTableHead');
 const logTableBody = document.getElementById('logTableBody');
 
 // Compact table elements
-const compactTableHead = document.getElementById('compactTableHead');
 const compactTableBody = document.getElementById('compactTableBody');
 
 // Dashboard elements
@@ -77,12 +64,6 @@ const pageSizeSelect = document.getElementById('pageSize');
 
 // View selector buttons
 const viewBtns = document.querySelectorAll('.view-btn');
-
-// Debug toggle
-const debugToggle = document.getElementById('debugToggle');
-const debugStatus = document.getElementById('debugStatus');
-
-log('DOM elements loaded - levelSelect:', levelSelect, 'uploadBox:', uploadBox, 'controlsBar:', controlsBar);
 
 // =====================================
 // EVENT LISTENERS
@@ -159,12 +140,6 @@ viewBtns.forEach(btn => {
         switchView(view);
     });
 });
-
-// Debug toggle
-if (debugToggle) {
-    debugToggle.addEventListener('click', toggleDebugMode);
-    updateDebugStatus();
-}
 
 // Pagination
 if (prevPage) {
@@ -508,43 +483,28 @@ function renderTableView() {
 // =====================================
 
 function renderCompactView() {
-    // Render header - 4 columnas esenciales
-    let headerHtml = '<tr>';
-    headerHtml += '<th class="col-line">#</th>';
-    headerHtml += '<th class="col-level">Nivel</th>';
-    headerHtml += '<th class="col-timestamp">Hora</th>';
-    headerHtml += '<th class="col-message">Mensaje</th>';
-    headerHtml += '</tr>';
-    if (compactTableHead) compactTableHead.innerHTML = headerHtml;
+    if (!compactTableBody) return;
 
-    // Render body
     const pageLogs = getCurrentPageLogs();
-    let bodyHtml = '';
+    let html = '';
 
-    pageLogs.forEach(logEntry => {
-        // Extract time from timestamp (HH:MM:SS)
-        const time = logEntry.timestamp ? logEntry.timestamp.substring(11, 19) : '--:--:--';
-        const levelClass = logEntry.level ? logEntry.level.toLowerCase() : 'info';
-        const lineIndex = logEntry.line_number ? (logEntry.line_number - 1) : 0;
+    for (let i = 0; i < pageLogs.length; i++) {
+        const entry = pageLogs[i];
+        const time = entry.timestamp ? entry.timestamp.substring(11, 19) : '--:--:--';
+        const level = entry.level || 'INFO';
+        const levelClass = level.toLowerCase();
+        const message = entry.message || '';
+        const lineNum = entry.line_number || (i + 1);
 
-        bodyHtml += '<tr class="log-row" onclick="showLogDetail(' + lineIndex + ')">';
+        html += '<tr class="log-row" onclick="showLogDetail(' + (lineNum - 1) + ')">';
+        html += '<td>#' + lineNum + '</td>';
+        html += '<td><span class="level-badge ' + levelClass + '">' + level + '</span></td>';
+        html += '<td>' + time + '</td>';
+        html += '<td>' + escapeHtml(truncate(message, 120)) + '</td>';
+        html += '</tr>';
+    }
 
-        // Column 1: Line number
-        bodyHtml += '<td><span class="line-num">#' + logEntry.line_number + '</span></td>';
-
-        // Column 2: Level badge
-        bodyHtml += '<td><span class="level-badge ' + levelClass + '">' + logEntry.level + '</span></td>';
-
-        // Column 3: Time
-        bodyHtml += '<td><span class="timestamp">' + time + '</span></td>';
-
-        // Column 4: Message (truncated)
-        bodyHtml += '<td><span class="message-text">' + escapeHtml(truncate(logEntry.message, 120)) + '</span></td>';
-
-        bodyHtml += '</tr>';
-    });
-
-    if (compactTableBody) compactTableBody.innerHTML = bodyHtml;
+    compactTableBody.innerHTML = html;
 }
 
 // =====================================
@@ -779,33 +739,6 @@ function escapeHtml(text) {
 function truncate(str, len) {
     if (!str) return '';
     return str.length > len ? str.substring(0, len) + '...' : str;
-}
-
-// Debug toggle functions
-function toggleDebugMode() {
-    DEBUG = !DEBUG;
-    localStorage.setItem('debugMode', DEBUG);
-    updateDebugStatus();
-
-    if (DEBUG) {
-        console.log('🐛 Debug mode ENABLED');
-        console.log('Current state:', {
-            logs: currentLogs.length,
-            filteredLogs: filteredLogs.length,
-            stats: currentStats,
-            currentView: currentView
-        });
-    } else {
-        console.log('🐛 Debug mode DISABLED');
-    }
-}
-
-function updateDebugStatus() {
-    if (debugStatus) {
-        debugStatus.textContent = DEBUG ? 'ON' : 'OFF';
-        debugStatus.style.color = DEBUG ? '#a6e3a1' : '#f38ba8';
-        debugStatus.style.fontWeight = DEBUG ? 'bold' : 'normal';
-    }
 }
 
 // Make functions global for onclick handlers
