@@ -213,13 +213,13 @@ function loadLogs() {
                 currentStats = data.data.stats;
 
                 // Hide upload, show viewer
-                uploadContainer.classList.add('hidden');
-                fileInfo.classList.remove('hidden');
-                closeFileBtn.classList.remove('hidden');
-                controlsBar.classList.remove('hidden');
+                if (uploadContainer) uploadContainer.classList.add('hidden');
+                if (fileInfo) fileInfo.classList.remove('hidden');
+                if (closeFileBtn) closeFileBtn.classList.remove('hidden');
+                if (controlsBar) controlsBar.classList.remove('hidden');
 
                 // Update file info
-                fileNameDisplay.textContent = currentFileName;
+                if (fileNameDisplay) fileNameDisplay.textContent = currentFileName;
                 updateFileStats();
 
                 // Detect columns
@@ -323,9 +323,9 @@ function switchView(view) {
     });
 
     // Hide all views
-    tableView.classList.add('hidden');
-    dashboardView.classList.add('hidden');
-    miniView.classList.add('hidden');
+    if (tableView) tableView.classList.add('hidden');
+    if (dashboardView) dashboardView.classList.add('hidden');
+    if (miniView) miniView.classList.add('hidden');
 
     // Render selected view
     renderCurrentView();
@@ -334,21 +334,25 @@ function switchView(view) {
 function renderCurrentView() {
     switch (currentView) {
         case 'table':
-            tableView.classList.remove('hidden');
+            if (tableView) tableView.classList.remove('hidden');
             renderTableView();
-            paginationBar.classList.remove('hidden');
-            updatePagination();
+            if (paginationBar) {
+                paginationBar.classList.remove('hidden');
+                updatePagination();
+            }
             break;
         case 'dashboard':
-            dashboardView.classList.remove('hidden');
+            if (dashboardView) dashboardView.classList.remove('hidden');
             renderDashboard();
-            paginationBar.classList.add('hidden');
+            if (paginationBar) paginationBar.classList.add('hidden');
             break;
         case 'mini':
-            miniView.classList.remove('hidden');
+            if (miniView) miniView.classList.remove('hidden');
             renderMiniView();
-            paginationBar.classList.remove('hidden');
-            updatePagination();
+            if (paginationBar) {
+                paginationBar.classList.remove('hidden');
+                updatePagination();
+            }
             break;
     }
 }
