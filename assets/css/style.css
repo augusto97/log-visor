@@ -91,6 +91,21 @@ body {
     gap: 10px;
 }
 
+#debugToggle {
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+#debugToggle:hover {
+    background: var(--bg-light);
+    transform: scale(1.05);
+}
+
+#debugStatus {
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
 /* Upload Section */
 .upload-container {
     max-width: 800px;
