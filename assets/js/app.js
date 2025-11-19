@@ -8,7 +8,7 @@ let currentFileName = '';
 let tableColumns = [];
 let currentView = 'table'; // Default view
 let currentPage = 1;
-let pageSize = 50;
+let pageSize = 20;
 
 // =====================================
 // DOM ELEMENTS
@@ -27,6 +27,8 @@ const searchInput = document.getElementById('searchInput');
 const levelSelect = document.getElementById('levelSelect');
 const dateFromInput = document.getElementById('dateFrom');
 const dateToInput = document.getElementById('dateTo');
+const timeFromSelect = document.getElementById('timeFrom');
+const timeToSelect = document.getElementById('timeTo');
 const applyFilters = document.getElementById('applyFilters');
 const clearFilters = document.getElementById('clearFilters');
 const logModal = document.getElementById('logModal');
@@ -55,6 +57,14 @@ const levelChartEl = document.getElementById('levelChart');
 const timelineChartEl = document.getElementById('timelineChart');
 const hourlyChartEl = document.getElementById('hourlyChart');
 const topErrorsChartEl = document.getElementById('topErrorsChart');
+const weekdayChartEl = document.getElementById('weekdayChart');
+const moduleChartEl = document.getElementById('moduleChart');
+const moduleChartCardEl = document.getElementById('moduleChartCard');
+const ipChartEl = document.getElementById('ipChart');
+const ipChartCardEl = document.getElementById('ipChartCard');
+const statusChartEl = document.getElementById('statusChart');
+const statusChartCardEl = document.getElementById('statusChartCard');
+const networkChartsRowEl = document.getElementById('networkChartsRow');
 const contextChart1El = document.getElementById('contextChart1');
 const contextChart2El = document.getElementById('contextChart2');
 const contextChart1TitleEl = document.getElementById('contextChart1Title');
@@ -373,6 +383,8 @@ function filterLogs() {
     const level = levelSelect ? levelSelect.value : 'ALL';
     const dateFrom = dateFromInput ? dateFromInput.value : '';
     const dateTo = dateToInput ? dateToInput.value : '';
+    const timeFrom = timeFromSelect ? timeFromSelect.value : '';
+    const timeTo = timeToSelect ? timeToSelect.value : '';
 
     filteredLogs = currentLogs.filter(log => {
         // Text search filter
@@ -389,16 +401,20 @@ function filterLogs() {
         if (log.timestamp) {
             const logDate = new Date(log.timestamp);
 
+            // Check dateFrom + timeFrom
             if (dateFrom) {
-                const fromDate = new Date(dateFrom);
-                if (logDate < fromDate) {
+                const timeStr = timeFrom || '00:00';
+                const fromDateTime = new Date(dateFrom + 'T' + timeStr + ':00');
+                if (logDate < fromDateTime) {
                     return false;
                 }
             }
 
+            // Check dateTo + timeTo
             if (dateTo) {
-                const toDate = new Date(dateTo);
-                if (logDate > toDate) {
+                const timeStr = timeTo || '23:59';
+                const toDateTime = new Date(dateTo + 'T' + timeStr + ':59');
+                if (logDate > toDateTime) {
                     return false;
                 }
             }
@@ -415,7 +431,23 @@ function filterLogs() {
 }
 
 function setupDateRangeFilter() {
-    if (!dateFromInput || !dateToInput) return;
+    if (!dateFromInput || !dateToInput || !timeFromSelect || !timeToSelect) return;
+
+    // Populate hour selects (0-23)
+    const populateHourSelect = (selectEl) => {
+        // Clear existing options except the first one
+        selectEl.innerHTML = '<option value="">Hora</option>';
+        for (let h = 0; h < 24; h++) {
+            const hour = String(h).padStart(2, '0') + ':00';
+            const option = document.createElement('option');
+            option.value = hour;
+            option.textContent = hour;
+            selectEl.appendChild(option);
+        }
+    };
+
+    populateHourSelect(timeFromSelect);
+    populateHourSelect(timeToSelect);
 
     // Get logs with valid timestamps
     const logsWithTimestamp = currentLogs.filter(log => log.timestamp);
@@ -424,36 +456,42 @@ function setupDateRangeFilter() {
         // No timestamps available, disable date filters
         dateFromInput.disabled = true;
         dateToInput.disabled = true;
-        dateFromInput.placeholder = 'Sin datos temporales';
-        dateToInput.placeholder = 'Sin datos temporales';
+        timeFromSelect.disabled = true;
+        timeToSelect.disabled = true;
         return;
     }
+
+    // Enable inputs
+    dateFromInput.disabled = false;
+    dateToInput.disabled = false;
+    timeFromSelect.disabled = false;
+    timeToSelect.disabled = false;
 
     // Find min and max dates
     const timestamps = logsWithTimestamp.map(log => new Date(log.timestamp));
     const minDate = new Date(Math.min(...timestamps));
     const maxDate = new Date(Math.max(...timestamps));
 
-    // Format to datetime-local format (YYYY-MM-DDTHH:MM)
-    const formatDateTime = (date) => {
+    // Format to date format (YYYY-MM-DD)
+    const formatDate = (date) => {
         const pad = (n) => String(n).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
     };
 
     // Set min and max attributes
-    dateFromInput.min = formatDateTime(minDate);
-    dateFromInput.max = formatDateTime(maxDate);
-    dateToInput.min = formatDateTime(minDate);
-    dateToInput.max = formatDateTime(maxDate);
+    dateFromInput.min = formatDate(minDate);
+    dateFromInput.max = formatDate(maxDate);
+    dateToInput.min = formatDate(minDate);
+    dateToInput.max = formatDate(maxDate);
 
-    // Set placeholders with actual range
+    // Set titles with range info
     const formatDisplay = (date) => {
         const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     };
 
-    dateFromInput.title = `Desde: ${formatDisplay(minDate)}`;
-    dateToInput.title = `Hasta: ${formatDisplay(maxDate)}`;
+    dateFromInput.title = `Disponible desde: ${formatDisplay(minDate)}`;
+    dateToInput.title = `Disponible hasta: ${formatDisplay(maxDate)}`;
 }
 
 function clearAllFilters() {
@@ -466,6 +504,8 @@ function clearAllFilters() {
     // Clear date filters
     if (dateFromInput) dateFromInput.value = '';
     if (dateToInput) dateToInput.value = '';
+    if (timeFromSelect) timeFromSelect.value = '';
+    if (timeToSelect) timeToSelect.value = '';
 
     // Apply empty filter (shows all logs)
     filterLogs();
@@ -596,6 +636,9 @@ function renderDashboard() {
     renderTimelineChart();
     renderHourlyChart();
     renderTopErrorsChart();
+    renderWeekdayChart();
+    renderModuleChart();
+    renderNetworkCharts();
     renderCriticalEvents();
     renderContextCharts();
 }
@@ -937,6 +980,210 @@ function renderContextChart(contextName, data, element, titleElement) {
     html += '</div>';
 
     element.innerHTML = html;
+}
+
+function renderWeekdayChart() {
+    if (!weekdayChartEl) return;
+
+    // Get logs with timestamps
+    const logsWithTimestamp = filteredLogs.filter(log => log.timestamp);
+
+    if (logsWithTimestamp.length === 0) {
+        weekdayChartEl.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay datos temporales</p>';
+        return;
+    }
+
+    // Count logs by day of week
+    const weekdayCounts = {
+        'Dom': 0,
+        'Lun': 0,
+        'Mar': 0,
+        'Mié': 0,
+        'Jue': 0,
+        'Vie': 0,
+        'Sáb': 0
+    };
+
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+    logsWithTimestamp.forEach(log => {
+        const date = new Date(log.timestamp);
+        const dayIndex = date.getDay();
+        weekdayCounts[dayNames[dayIndex]]++;
+    });
+
+    const maxCount = Math.max(...Object.values(weekdayCounts));
+
+    let html = '<div class="hourly-chart" style="height: 160px;">';
+    Object.entries(weekdayCounts).forEach(([day, count]) => {
+        const height = maxCount > 0 ? (count / maxCount * 100) : 0;
+        html += `
+            <div class="hourly-bar" style="flex: 1;">
+                <div class="hourly-fill" style="height: ${height}%;" title="${day}: ${count} logs"></div>
+                <div class="hourly-label">${day}</div>
+                <div class="hourly-count">${count}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    weekdayChartEl.innerHTML = html;
+}
+
+function renderModuleChart() {
+    if (!moduleChartEl || !moduleChartCardEl) return;
+
+    // Collect module data from context
+    const moduleCounts = {};
+    filteredLogs.forEach(log => {
+        if (log.context && log.context.module) {
+            const module = log.context.module;
+            moduleCounts[module] = (moduleCounts[module] || 0) + 1;
+        }
+    });
+
+    if (Object.keys(moduleCounts).length === 0) {
+        moduleChartCardEl.style.display = 'none';
+        return;
+    }
+
+    moduleChartCardEl.style.display = 'block';
+
+    // Sort and take top 10
+    const sorted = Object.entries(moduleCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const maxCount = sorted[0][1];
+
+    let html = '<div class="context-chart">';
+    sorted.forEach(([module, count]) => {
+        const percentage = (count / maxCount * 100);
+        html += `
+            <div class="context-item">
+                <div class="context-bar">
+                    <div class="context-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="context-info">
+                    <span class="context-count">${count}</span>
+                    <span class="context-value">${escapeHtml(module)}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    moduleChartEl.innerHTML = html;
+}
+
+function renderNetworkCharts() {
+    if (!networkChartsRowEl) return;
+
+    let hasNetworkData = false;
+
+    // Render IP Chart
+    if (ipChartEl && ipChartCardEl) {
+        const ipCounts = {};
+        filteredLogs.forEach(log => {
+            if (log.context) {
+                const ip = log.context.ip || log.context.client;
+                if (ip) {
+                    // Clean up client format (remove port if present)
+                    const cleanIp = ip.split(':')[0];
+                    ipCounts[cleanIp] = (ipCounts[cleanIp] || 0) + 1;
+                }
+            }
+        });
+
+        if (Object.keys(ipCounts).length > 0) {
+            hasNetworkData = true;
+            ipChartCardEl.style.display = 'block';
+
+            const sorted = Object.entries(ipCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const maxCount = sorted[0][1];
+
+            let html = '<div class="context-chart">';
+            sorted.forEach(([ip, count]) => {
+                const percentage = (count / maxCount * 100);
+                html += `
+                    <div class="context-item">
+                        <div class="context-bar">
+                            <div class="context-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="context-info">
+                            <span class="context-count">${count}</span>
+                            <span class="context-value">${escapeHtml(ip)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            ipChartEl.innerHTML = html;
+        } else {
+            ipChartCardEl.style.display = 'none';
+        }
+    }
+
+    // Render Status Code Chart
+    if (statusChartEl && statusChartCardEl) {
+        const statusCounts = {};
+        filteredLogs.forEach(log => {
+            if (log.context && log.context.status) {
+                const status = log.context.status;
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            }
+        });
+
+        if (Object.keys(statusCounts).length > 0) {
+            hasNetworkData = true;
+            statusChartCardEl.style.display = 'block';
+
+            const sorted = Object.entries(statusCounts)
+                .sort((a, b) => b[1] - a[1]);
+
+            const maxCount = sorted[0][1];
+
+            // Group status codes by type
+            const getStatusClass = (code) => {
+                if (code.startsWith('2')) return 'success';
+                if (code.startsWith('3')) return 'redirect';
+                if (code.startsWith('4')) return 'client-error';
+                if (code.startsWith('5')) return 'server-error';
+                return 'unknown';
+            };
+
+            let html = '<div class="context-chart">';
+            sorted.forEach(([status, count]) => {
+                const percentage = (count / maxCount * 100);
+                const statusClass = getStatusClass(status);
+                html += `
+                    <div class="context-item">
+                        <div class="context-bar">
+                            <div class="context-fill status-${statusClass}" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="context-info">
+                            <span class="context-count">${count}</span>
+                            <span class="context-value">HTTP ${status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            statusChartEl.innerHTML = html;
+        } else {
+            statusChartCardEl.style.display = 'none';
+        }
+    }
+
+    // Show/hide the network charts row
+    if (networkChartsRowEl) {
+        networkChartsRowEl.style.display = hasNetworkData ? 'flex' : 'none';
+    }
 }
 
 // =====================================
