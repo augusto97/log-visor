@@ -1355,4 +1355,103 @@ function truncate(str, len) {
 
 // Make functions global for onclick handlers
 window.showLogDetail = showLogDetail;
-window.goToPage = goToPage;
+
+// =====================================
+// DRAG AND DROP FOR CHART REORGANIZATION
+// =====================================
+
+let draggedElement = null;
+
+function initDragAndDrop() {
+    const chartCards = document.querySelectorAll('.chart-card');
+
+    chartCards.forEach(card => {
+        card.setAttribute('draggable', 'true');
+
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('drop', handleDrop);
+        card.addEventListener('dragleave', handleDragLeave);
+        card.addEventListener('dragenter', handleDragEnter);
+    });
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+
+    // Remove all drag-over classes
+    const chartCards = document.querySelectorAll('.chart-card');
+    chartCards.forEach(card => {
+        card.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    if (draggedElement !== this) {
+        // Get parent containers
+        const draggedParent = draggedElement.parentNode;
+        const droppedParent = this.parentNode;
+
+        // If they're in the same row, swap them
+        if (draggedParent === droppedParent) {
+            const allCards = Array.from(draggedParent.children);
+            const draggedIndex = allCards.indexOf(draggedElement);
+            const droppedIndex = allCards.indexOf(this);
+
+            if (draggedIndex < droppedIndex) {
+                draggedParent.insertBefore(draggedElement, this.nextSibling);
+            } else {
+                draggedParent.insertBefore(draggedElement, this);
+            }
+        } else {
+            // If they're in different rows, swap their positions
+            const draggedNext = draggedElement.nextSibling;
+            const droppedNext = this.nextSibling;
+
+            droppedParent.insertBefore(draggedElement, droppedNext);
+            draggedParent.insertBefore(this, draggedNext);
+        }
+    }
+
+    this.classList.remove('drag-over');
+    return false;
+}
+
+// Initialize drag and drop when view switches to dashboard
+const originalSwitchView = switchView;
+window.switchView = function(view) {
+    originalSwitchView(view);
+    if (view === 'dashboard') {
+        setTimeout(initDragAndDrop, 100);
+    }
+};

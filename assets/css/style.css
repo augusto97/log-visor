@@ -630,6 +630,71 @@ input[type="file"] {
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+    .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .view-selector {
+        justify-content: center;
+    }
+
+    .filter-controls {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .controls-bar {
+        padding: 12px 15px;
+    }
+
+    .filter-controls {
+        gap: 8px;
+    }
+
+    .filter-input-sm {
+        min-width: 150px;
+        font-size: 0.8rem;
+    }
+
+    .filter-select-sm {
+        font-size: 0.8rem;
+    }
+
+    .view-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    .filter-input-sm,
+    .filter-select-sm {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .btn-sm {
+        width: 100%;
+    }
 }
 
 .filter-input-sm, .filter-select-sm {
@@ -672,6 +737,20 @@ input[type="file"] {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
 }
 
 .stat-card {
@@ -732,6 +811,19 @@ input[type="file"] {
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 20px;
+    cursor: move;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.chart-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.chart-card.drag-over {
+    border: 2px dashed var(--accent-blue);
+    background: var(--bg-light);
 }
 
 .chart-card.wide {
@@ -742,8 +834,31 @@ input[type="file"] {
     grid-column: 1 / -1;
 }
 
+/* Drag handle */
+.chart-card h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: grab;
+    user-select: none;
+}
+
+.chart-card h3:active {
+    cursor: grabbing;
+}
+
+.chart-container {
+    min-height: 200px;
+}
+
 /* Responsive grid */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
+    .charts-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
     .charts-row {
         grid-template-columns: 1fr;
     }
@@ -754,14 +869,35 @@ input[type="file"] {
     }
 }
 
-.chart-card h3 {
-    margin-bottom: 15px;
-    color: var(--text-primary);
-    font-size: 1rem;
+@media (max-width: 768px) {
+    .charts-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .chart-card {
+        padding: 15px;
+    }
+
+    .chart-card.wide,
+    .chart-card.full-width {
+        grid-column: 1;
+    }
 }
 
-.chart-container {
-    min-height: 200px;
+@media (max-width: 480px) {
+    .charts-row {
+        gap: 10px;
+    }
+
+    .chart-card {
+        padding: 12px;
+    }
+
+    .chart-card h3 {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
 }
 
 /* Bar Chart */
@@ -1242,4 +1378,50 @@ input[type="file"] {
 .page-ellipsis {
     padding: 6px;
     color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .pagination-bar {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .pagination-info {
+        font-size: 0.75rem;
+    }
+
+    .page-numbers {
+        gap: 2px;
+    }
+
+    .page-num {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination-bar {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .pagination-size {
+        width: 100%;
+    }
+
+    .pagination-size select {
+        width: 100%;
+    }
+
+    .page-numbers {
+        flex: 1;
+        justify-content: center;
+        overflow-x: auto;
+    }
 }
