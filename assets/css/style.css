@@ -1036,6 +1036,26 @@ input[type="file"] {
     transition: width 0.3s;
 }
 
+.context-fill.status-success {
+    background: #10b981;
+}
+
+.context-fill.status-redirect {
+    background: #3b82f6;
+}
+
+.context-fill.status-client-error {
+    background: #f59e0b;
+}
+
+.context-fill.status-server-error {
+    background: #ef4444;
+}
+
+.context-fill.status-unknown {
+    background: #6b7280;
+}
+
 .context-info {
     display: flex;
     gap: 8px;

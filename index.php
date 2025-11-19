@@ -62,10 +62,18 @@
                 </select>
             </div>
             <div class="filter-group">
-                <input type="datetime-local" class="filter-input-sm" id="dateFrom" title="Desde">
+                <label style="font-size: 0.75rem; margin-right: 4px;">Desde:</label>
+                <input type="date" class="filter-input-sm" id="dateFrom" style="width: 135px;">
+                <select class="filter-select-sm" id="timeFrom" style="width: 70px;">
+                    <option value="">Hora</option>
+                </select>
             </div>
             <div class="filter-group">
-                <input type="datetime-local" class="filter-input-sm" id="dateTo" title="Hasta">
+                <label style="font-size: 0.75rem; margin-right: 4px;">Hasta:</label>
+                <input type="date" class="filter-input-sm" id="dateTo" style="width: 135px;">
+                <select class="filter-select-sm" id="timeTo" style="width: 70px;">
+                    <option value="">Hora</option>
+                </select>
             </div>
             <button class="btn btn-primary btn-sm" id="applyFilters">Filtrar</button>
             <button class="btn btn-secondary btn-sm" id="clearFilters">Limpiar</button>
@@ -184,7 +192,31 @@
                 </div>
             </div>
 
-            <!-- Charts Row 3 - Contexto adicional -->
+            <!-- Charts Row 3 - Distribución por día y módulos -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>📅 Distribución por Día de la Semana</h3>
+                    <div class="chart-container" id="weekdayChart"></div>
+                </div>
+                <div class="chart-card" id="moduleChartCard" style="display: none;">
+                    <h3>🔧 Top Módulos Activos</h3>
+                    <div class="chart-container" id="moduleChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 4 - IPs y Códigos HTTP -->
+            <div class="charts-row" id="networkChartsRow" style="display: none;">
+                <div class="chart-card" id="ipChartCard">
+                    <h3>🌐 Top IPs/Clientes</h3>
+                    <div class="chart-container" id="ipChart"></div>
+                </div>
+                <div class="chart-card" id="statusChartCard">
+                    <h3>📡 Códigos de Estado HTTP</h3>
+                    <div class="chart-container" id="statusChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 5 - Contexto adicional -->
             <div class="charts-row" id="contextChartsRow" style="display: none;">
                 <div class="chart-card">
                     <h3 id="contextChart1Title">Contexto</h3>
@@ -223,8 +255,8 @@
         </div>
         <div class="pagination-size">
             <select class="filter-select-sm" id="pageSize">
-                <option value="20">20 por página</option>
-                <option value="50" selected>50 por página</option>
+                <option value="20" selected>20 por página</option>
+                <option value="50">50 por página</option>
                 <option value="100">100 por página</option>
                 <option value="200">200 por página</option>
             </select>
