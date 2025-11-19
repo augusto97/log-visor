@@ -904,7 +904,9 @@ input[type="file"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
+    height: 100%;
+    justify-content: flex-end;
 }
 
 .hourly-fill {
@@ -912,7 +914,7 @@ input[type="file"] {
     background: var(--accent-blue);
     border-radius: 3px 3px 0 0;
     min-height: 2px;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
 }
 
 .hourly-bar:hover .hourly-fill {

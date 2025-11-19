@@ -819,9 +819,9 @@ function renderHourlyChart() {
         const height = maxCount > 0 ? (count / maxCount * 100) : 0;
         html += `
             <div class="hourly-bar">
+                <div class="hourly-count">${count}</div>
                 <div class="hourly-fill" style="height: ${height}%;" title="${hour}:00 - ${count} logs"></div>
                 <div class="hourly-label">${hour}h</div>
-                <div class="hourly-count">${count}</div>
             </div>
         `;
     });
@@ -1023,10 +1023,10 @@ function renderWeekdayChart() {
     Object.entries(weekdayCounts).forEach(([day, count]) => {
         const height = maxCount > 0 ? (count / maxCount * 100) : 0;
         html += `
-            <div class="hourly-bar" style="flex: 1;">
+            <div class="hourly-bar">
+                <div class="hourly-count">${count}</div>
                 <div class="hourly-fill" style="height: ${height}%;" title="${day}: ${count} logs"></div>
                 <div class="hourly-label">${day}</div>
-                <div class="hourly-count">${count}</div>
             </div>
         `;
     });
