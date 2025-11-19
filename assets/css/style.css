@@ -893,6 +893,11 @@ input[type="file"] {
     max-width: calc(50% - 10px);
 }
 
+.chart-card.chart-third {
+    flex: 1 1 calc(33.333% - 14px);
+    max-width: calc(33.333% - 14px);
+}
+
 .chart-card.chart-full {
     flex: 1 1 100%;
     max-width: 100%;
@@ -1012,8 +1017,18 @@ input[type="file"] {
 }
 
 /* Responsive */
+@media (max-width: 1400px) {
+    /* On smaller desktops, make thirds become halves for better readability */
+    .chart-card.chart-third {
+        flex: 1 1 calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+}
+
 @media (max-width: 1024px) {
-    .chart-card {
+    .chart-card,
+    .chart-card.chart-third,
+    .chart-card.chart-full {
         flex: 1 1 100%;
         max-width: 100%;
         cursor: default;

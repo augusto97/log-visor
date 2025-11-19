@@ -1394,6 +1394,9 @@ function addResizeControls(card) {
     const controls = document.createElement('div');
     controls.className = 'chart-resize-controls';
     controls.innerHTML = `
+        <button class="resize-btn" data-size="third" title="Un tercio de ancho (33%)">
+            ▫️ 1/3
+        </button>
         <button class="resize-btn" data-size="normal" title="Mitad de ancho (50%)">
             ⬜ 1/2
         </button>
@@ -1425,7 +1428,13 @@ function updateActiveResizeButton(card) {
         btn.classList.remove('active');
     });
 
-    const activeSize = card.classList.contains('chart-full') ? 'full' : 'normal';
+    let activeSize = 'normal';
+    if (card.classList.contains('chart-full')) {
+        activeSize = 'full';
+    } else if (card.classList.contains('chart-third')) {
+        activeSize = 'third';
+    }
+
     const activeBtn = controls.querySelector(`[data-size="${activeSize}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active');
@@ -1433,11 +1442,17 @@ function updateActiveResizeButton(card) {
 }
 
 function resizeChart(card, size) {
+    // Remove all size classes
+    card.classList.remove('chart-full', 'chart-third');
+
+    // Add the appropriate class
     if (size === 'full') {
         card.classList.add('chart-full');
-    } else {
-        card.classList.remove('chart-full');
+    } else if (size === 'third') {
+        card.classList.add('chart-third');
     }
+    // 'normal' (50%) is the default, no class needed
+
     updateActiveResizeButton(card);
 }
 
