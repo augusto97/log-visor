@@ -723,7 +723,7 @@ input[type="file"] {
 
 .charts-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -740,6 +740,18 @@ input[type="file"] {
 
 .chart-card.full-width {
     grid-column: 1 / -1;
+}
+
+/* Responsive grid */
+@media (max-width: 1200px) {
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card.wide,
+    .chart-card.full-width {
+        grid-column: 1;
+    }
 }
 
 .chart-card h3 {
@@ -912,6 +924,12 @@ input[type="file"] {
     color: var(--text-muted);
 }
 
+.hourly-count {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 /* Top Errors Chart */
 .top-errors-list {
     display: flex;
@@ -955,9 +973,9 @@ input[type="file"] {
 .top-error-msg {
     color: var(--text-secondary);
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-wrap: break-word;
+    line-height: 1.4;
+    cursor: help;
 }
 
 /* Critical Events List */

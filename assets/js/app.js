@@ -820,7 +820,8 @@ function renderHourlyChart() {
         html += `
             <div class="hourly-bar">
                 <div class="hourly-fill" style="height: ${height}%;" title="${hour}:00 - ${count} logs"></div>
-                <div class="hourly-label">${hour}</div>
+                <div class="hourly-label">${hour}h</div>
+                <div class="hourly-count">${count}</div>
             </div>
         `;
     });
@@ -841,11 +842,14 @@ function renderTopErrorsChart() {
         return;
     }
 
-    // Count frequency of each error message
+    // Count frequency of each error message (store full message)
     const messageCounts = {};
     errors.forEach(log => {
-        const msg = truncate(log.message, 60);
-        messageCounts[msg] = (messageCounts[msg] || 0) + 1;
+        const msg = log.message;
+        if (!messageCounts[msg]) {
+            messageCounts[msg] = 0;
+        }
+        messageCounts[msg]++;
     });
 
     // Sort by frequency and take top 10
@@ -858,6 +862,7 @@ function renderTopErrorsChart() {
     let html = '<div class="top-errors-list">';
     sorted.forEach(([msg, count]) => {
         const percentage = (count / maxCount * 100);
+        const displayMsg = msg.length > 100 ? truncate(msg, 100) : msg;
         html += `
             <div class="top-error-item">
                 <div class="top-error-bar">
@@ -865,7 +870,7 @@ function renderTopErrorsChart() {
                 </div>
                 <div class="top-error-info">
                     <span class="top-error-count">${count}x</span>
-                    <span class="top-error-msg">${escapeHtml(msg)}</span>
+                    <span class="top-error-msg" title="${escapeHtml(msg)}">${escapeHtml(displayMsg)}</span>
                 </div>
             </div>
         `;
