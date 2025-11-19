@@ -25,7 +25,10 @@ const closeFileBtn = document.getElementById('closeFileBtn');
 const controlsBar = document.getElementById('controlsBar');
 const searchInput = document.getElementById('searchInput');
 const levelSelect = document.getElementById('levelSelect');
+const dateFromInput = document.getElementById('dateFrom');
+const dateToInput = document.getElementById('dateTo');
 const applyFilters = document.getElementById('applyFilters');
+const clearFilters = document.getElementById('clearFilters');
 const logModal = document.getElementById('logModal');
 const modalClose = document.getElementById('modalClose');
 const logDetail = document.getElementById('logDetail');
@@ -123,6 +126,9 @@ if (closeFileBtn) {
 }
 if (applyFilters) {
     applyFilters.addEventListener('click', filterLogs);
+}
+if (clearFilters) {
+    clearFilters.addEventListener('click', clearAllFilters);
 }
 if (modalClose && logModal) {
     modalClose.addEventListener('click', () => {
@@ -260,6 +266,9 @@ function loadLogs() {
                 // Populate level filter dynamically
                 populateLevelFilter();
 
+                // Setup date range filter
+                setupDateRangeFilter();
+
                 // Render default view
                 switchView('table');
             } else {
@@ -360,21 +369,106 @@ function closeFile() {
 // =====================================
 
 function filterLogs() {
-    const search = searchInput.value.toLowerCase();
-    const level = levelSelect.value;
+    const search = searchInput ? searchInput.value.toLowerCase() : '';
+    const level = levelSelect ? levelSelect.value : 'ALL';
+    const dateFrom = dateFromInput ? dateFromInput.value : '';
+    const dateTo = dateToInput ? dateToInput.value : '';
 
     filteredLogs = currentLogs.filter(log => {
+        // Text search filter
         if (search && !log.message.toLowerCase().includes(search) && !log.raw.toLowerCase().includes(search)) {
             return false;
         }
+
+        // Level filter
         if (level !== 'ALL' && log.level !== level) {
             return false;
         }
+
+        // Date range filter
+        if (log.timestamp) {
+            const logDate = new Date(log.timestamp);
+
+            if (dateFrom) {
+                const fromDate = new Date(dateFrom);
+                if (logDate < fromDate) {
+                    return false;
+                }
+            }
+
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                if (logDate > toDate) {
+                    return false;
+                }
+            }
+        } else if (dateFrom || dateTo) {
+            // If date filters are set but log has no timestamp, exclude it
+            return false;
+        }
+
         return true;
     });
 
     currentPage = 1;
     renderCurrentView();
+}
+
+function setupDateRangeFilter() {
+    if (!dateFromInput || !dateToInput) return;
+
+    // Get logs with valid timestamps
+    const logsWithTimestamp = currentLogs.filter(log => log.timestamp);
+
+    if (logsWithTimestamp.length === 0) {
+        // No timestamps available, disable date filters
+        dateFromInput.disabled = true;
+        dateToInput.disabled = true;
+        dateFromInput.placeholder = 'Sin datos temporales';
+        dateToInput.placeholder = 'Sin datos temporales';
+        return;
+    }
+
+    // Find min and max dates
+    const timestamps = logsWithTimestamp.map(log => new Date(log.timestamp));
+    const minDate = new Date(Math.min(...timestamps));
+    const maxDate = new Date(Math.max(...timestamps));
+
+    // Format to datetime-local format (YYYY-MM-DDTHH:MM)
+    const formatDateTime = (date) => {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
+    // Set min and max attributes
+    dateFromInput.min = formatDateTime(minDate);
+    dateFromInput.max = formatDateTime(maxDate);
+    dateToInput.min = formatDateTime(minDate);
+    dateToInput.max = formatDateTime(maxDate);
+
+    // Set placeholders with actual range
+    const formatDisplay = (date) => {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
+    dateFromInput.title = `Desde: ${formatDisplay(minDate)}`;
+    dateToInput.title = `Hasta: ${formatDisplay(maxDate)}`;
+}
+
+function clearAllFilters() {
+    // Clear text search
+    if (searchInput) searchInput.value = '';
+
+    // Reset level filter
+    if (levelSelect) levelSelect.value = 'ALL';
+
+    // Clear date filters
+    if (dateFromInput) dateFromInput.value = '';
+    if (dateToInput) dateToInput.value = '';
+
+    // Apply empty filter (shows all logs)
+    filterLogs();
 }
 
 // =====================================

@@ -61,7 +61,14 @@
                     <option value="ALL">Todos los niveles</option>
                 </select>
             </div>
+            <div class="filter-group">
+                <input type="datetime-local" class="filter-input-sm" id="dateFrom" title="Desde">
+            </div>
+            <div class="filter-group">
+                <input type="datetime-local" class="filter-input-sm" id="dateTo" title="Hasta">
+            </div>
             <button class="btn btn-primary btn-sm" id="applyFilters">Filtrar</button>
+            <button class="btn btn-secondary btn-sm" id="clearFilters">Limpiar</button>
         </div>
     </div>
 
@@ -216,7 +223,8 @@
         </div>
         <div class="pagination-size">
             <select class="filter-select-sm" id="pageSize">
-                <option value="50">50 por página</option>
+                <option value="20">20 por página</option>
+                <option value="50" selected>50 por página</option>
                 <option value="100">100 por página</option>
                 <option value="200">200 por página</option>
             </select>
