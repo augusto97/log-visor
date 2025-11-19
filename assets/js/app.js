@@ -1394,17 +1394,11 @@ function addResizeControls(card) {
     const controls = document.createElement('div');
     controls.className = 'chart-resize-controls';
     controls.innerHTML = `
-        <button class="resize-btn" data-size="third" title="1/3 ancho">
-            <span class="resize-icon">▐</span>
+        <button class="resize-btn" data-size="normal" title="Mitad de ancho (50%)">
+            ⬜ 1/2
         </button>
-        <button class="resize-btn" data-size="1" title="1/2 ancho">
-            <span class="resize-icon">▐▐</span>
-        </button>
-        <button class="resize-btn" data-size="2" title="2/3 ancho">
-            <span class="resize-icon">▐▐▐</span>
-        </button>
-        <button class="resize-btn" data-size="full" title="Ancho completo">
-            <span class="resize-icon">▐▐▐▐</span>
+        <button class="resize-btn" data-size="full" title="Ancho completo (100%)">
+            ⬛ Full
         </button>
     `;
 
@@ -1431,15 +1425,7 @@ function updateActiveResizeButton(card) {
         btn.classList.remove('active');
     });
 
-    let activeSize = '1';
-    if (card.classList.contains('full-width')) {
-        activeSize = 'full';
-    } else if (card.classList.contains('wide')) {
-        activeSize = '2';
-    } else if (card.classList.contains('chart-third')) {
-        activeSize = 'third';
-    }
-
+    const activeSize = card.classList.contains('chart-full') ? 'full' : 'normal';
     const activeBtn = controls.querySelector(`[data-size="${activeSize}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active');
@@ -1447,19 +1433,11 @@ function updateActiveResizeButton(card) {
 }
 
 function resizeChart(card, size) {
-    // Remove all size classes
-    card.classList.remove('wide', 'full-width', 'chart-third');
-
-    // Add new size class
-    if (size === 'third') {
-        card.classList.add('chart-third');
-    } else if (size === '2') {
-        card.classList.add('wide');
-    } else if (size === 'full') {
-        card.classList.add('full-width');
+    if (size === 'full') {
+        card.classList.add('chart-full');
+    } else {
+        card.classList.remove('chart-full');
     }
-    // size '1' doesn't need a class
-
     updateActiveResizeButton(card);
 }
 
