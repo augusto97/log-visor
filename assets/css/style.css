@@ -645,6 +645,17 @@ input[type="file"] {
     min-width: 200px;
 }
 
+.filter-input-sm[type="datetime-local"] {
+    min-width: 180px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.8rem;
+}
+
+.filter-input-sm[type="datetime-local"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* View Containers */
 .view-container {
     padding: 20px;
