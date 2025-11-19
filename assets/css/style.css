@@ -39,12 +39,16 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .top-bar-left {
     display: flex;
     align-items: center;
     gap: 20px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .logo {
@@ -54,6 +58,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .file-info {
@@ -62,11 +67,16 @@ body {
     gap: 15px;
     padding-left: 15px;
     border-left: 1px solid var(--border);
+    min-width: 0;
+    flex: 1;
 }
 
 .file-name {
     color: var(--text-primary);
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .file-stats {
@@ -74,6 +84,56 @@ body {
     gap: 15px;
     font-size: 0.85rem;
     color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .top-bar {
+        padding: 10px 15px;
+    }
+
+    .top-bar-left {
+        gap: 10px;
+        flex: 1;
+    }
+
+    .logo {
+        font-size: 1rem;
+    }
+
+    .file-info {
+        padding-left: 10px;
+        gap: 10px;
+    }
+
+    .file-stats {
+        gap: 8px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .top-bar-left {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .file-info {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 10px;
+    }
+
+    .top-bar-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
 
 .stat-badge {
@@ -815,13 +875,9 @@ input[type="file"] {
 }
 
 .charts-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
-}
-
-.charts-row-triple {
-    grid-template-columns: repeat(3, 1fr);
 }
 
 .chart-card {
@@ -833,12 +889,18 @@ input[type="file"] {
     transition: all 0.3s ease;
     position: relative;
     min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
+    flex: 1 1 calc(50% - 10px);
+    max-width: calc(50% - 10px);
 }
 
-.chart-third {
-    grid-column: span 1;
+.chart-card.chart-third {
+    flex: 1 1 calc(33.333% - 13.333px);
+    max-width: calc(33.333% - 13.333px);
+}
+
+.chart-card.chart-full {
+    flex: 1 1 100%;
+    max-width: 100%;
 }
 
 .chart-card.dragging {
@@ -873,13 +935,6 @@ input[type="file"] {
     font-weight: 600;
 }
 
-.chart-card.wide {
-    grid-column: span 2;
-}
-
-.chart-card.full-width {
-    grid-column: 1 / -1;
-}
 
 /* Controles de resize */
 .chart-resize-controls {
@@ -961,67 +1016,42 @@ input[type="file"] {
     }
 }
 
-/* Responsive grid */
-@media (max-width: 1400px) {
-    .charts-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .charts-row-triple {
-        grid-template-columns: repeat(3, 1fr);
+/* Responsive */
+@media (max-width: 1200px) {
+    /* On smaller screens, make thirds become halves for better readability */
+    .chart-card.chart-third {
+        flex: 1 1 calc(50% - 10px);
+        max-width: calc(50% - 10px);
     }
 }
 
 @media (max-width: 1024px) {
-    .charts-row {
-        grid-template-columns: 1fr !important;
-    }
-
-    .charts-row-triple {
-        grid-template-columns: 1fr !important;
-    }
-
-    .chart-card.wide,
-    .chart-card.full-width,
-    .chart-third {
-        grid-column: 1 !important;
-    }
-
-    /* Hide resize controls on mobile */
-    .chart-resize-controls {
-        display: none;
-    }
-
-    /* Disable drag on mobile */
-    .chart-card {
+    .chart-card,
+    .chart-card.chart-third,
+    .chart-card.chart-full {
+        flex: 1 1 100%;
+        max-width: 100%;
         cursor: default;
     }
 
     .chart-card h3 {
         cursor: default;
     }
+
+    /* Hide resize controls on mobile */
+    .chart-resize-controls {
+        display: none;
+    }
 }
 
 @media (max-width: 768px) {
     .charts-row {
-        grid-template-columns: 1fr !important;
         gap: 15px;
-    }
-
-    .charts-row-triple {
-        grid-template-columns: 1fr !important;
     }
 
     .chart-card {
         padding: 15px;
-        max-width: 100%;
         overflow-x: auto;
-    }
-
-    .chart-card.wide,
-    .chart-card.full-width,
-    .chart-third {
-        grid-column: 1 !important;
     }
 }
 

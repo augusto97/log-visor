@@ -170,7 +170,7 @@
 
             <!-- Charts Row 1 - Timeline -->
             <div class="charts-row">
-                <div class="chart-card full-width">
+                <div class="chart-card chart-full">
                     <h3>📈 Timeline de Logs</h3>
                     <div class="chart-container" id="timelineChart"></div>
                 </div>
@@ -202,47 +202,39 @@
 
             <!-- Charts Row 4 - Top Errores Frecuentes -->
             <div class="charts-row">
-                <div class="chart-card full-width">
+                <div class="chart-card chart-full">
                     <h3>🔥 Top 10 Errores Frecuentes</h3>
                     <div class="chart-container" id="topErrorsChart"></div>
                 </div>
             </div>
 
-            <!-- Charts Row 5 - IPs y Códigos HTTP (3 columnas) -->
-            <div class="charts-row charts-row-triple" id="networkChartsRow" style="display: none;">
-                <div class="chart-card chart-third" id="ipChartCard">
+            <!-- Charts Row 5 - IPs y Códigos HTTP -->
+            <div class="charts-row" id="networkChartsRow" style="display: none;">
+                <div class="chart-card" id="ipChartCard">
                     <h3>🌐 Top IPs/Clientes</h3>
                     <div class="chart-container" id="ipChart"></div>
                 </div>
-                <div class="chart-card chart-third" id="statusChartCard">
+                <div class="chart-card" id="statusChartCard">
                     <h3>📡 Códigos de Estado HTTP</h3>
                     <div class="chart-container" id="statusChart"></div>
                 </div>
-                <div class="chart-card chart-third" id="moduleChartCard2" style="display: none;">
-                    <h3>🔧 Top Módulos</h3>
-                    <div class="chart-container" id="moduleChart2"></div>
-                </div>
             </div>
 
-            <!-- Charts Row 6 - Contexto adicional (3 columnas) -->
-            <div class="charts-row charts-row-triple" id="contextChartsRow" style="display: none;">
-                <div class="chart-card chart-third">
+            <!-- Charts Row 6 - Contexto adicional -->
+            <div class="charts-row" id="contextChartsRow" style="display: none;">
+                <div class="chart-card">
                     <h3 id="contextChart1Title">Contexto</h3>
                     <div class="chart-container" id="contextChart1"></div>
                 </div>
-                <div class="chart-card chart-third">
+                <div class="chart-card">
                     <h3 id="contextChart2Title">Contexto</h3>
                     <div class="chart-container" id="contextChart2"></div>
-                </div>
-                <div class="chart-card chart-third" style="display: none;">
-                    <h3 id="contextChart3Title">Contexto</h3>
-                    <div class="chart-container" id="contextChart3"></div>
                 </div>
             </div>
 
             <!-- Recent Critical Events -->
             <div class="charts-row">
-                <div class="chart-card full-width">
+                <div class="chart-card chart-full">
                     <h3>🚨 Eventos Críticos Recientes</h3>
                     <div id="criticalEvents"></div>
                 </div>
