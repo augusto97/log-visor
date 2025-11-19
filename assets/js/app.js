@@ -1102,7 +1102,7 @@ function renderNetworkCharts() {
 
         if (Object.keys(ipCounts).length > 0) {
             hasNetworkData = true;
-            ipChartCardEl.style.display = 'block';
+            ipChartCardEl.style.display = '';
 
             const sorted = Object.entries(ipCounts)
                 .sort((a, b) => b[1] - a[1])
@@ -1145,7 +1145,7 @@ function renderNetworkCharts() {
 
         if (Object.keys(statusCounts).length > 0) {
             hasNetworkData = true;
-            statusChartCardEl.style.display = 'block';
+            statusChartCardEl.style.display = '';
 
             const sorted = Object.entries(statusCounts)
                 .sort((a, b) => b[1] - a[1]);
@@ -1365,6 +1365,7 @@ let placeholder = null;
 
 function initDragAndDrop() {
     const chartCards = document.querySelectorAll('.chart-card');
+    const chartsRows = document.querySelectorAll('.charts-row');
     const isMobile = window.innerWidth <= 1024;
 
     chartCards.forEach(card => {
@@ -1385,6 +1386,14 @@ function initDragAndDrop() {
             card.setAttribute('draggable', 'false');
         }
     });
+
+    // Also add drop zones to chart rows for empty space drops
+    if (!isMobile) {
+        chartsRows.forEach(row => {
+            row.addEventListener('dragover', handleRowDragOver);
+            row.addEventListener('drop', handleRowDrop);
+        });
+    }
 }
 
 function addResizeControls(card) {
@@ -1543,6 +1552,42 @@ function handleDrop(e) {
     }
 
     this.classList.remove('drag-over');
+    return false;
+}
+
+function handleRowDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+
+    // If dragging over empty space in the row, position placeholder at the end
+    if (placeholder && draggedElement) {
+        const target = e.target;
+
+        // Only handle if we're in the row itself (not a child card)
+        if (target.classList.contains('charts-row')) {
+            // Append placeholder to end of row
+            target.appendChild(placeholder);
+        }
+    }
+
+    return false;
+}
+
+function handleRowDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+
+    if (draggedElement && placeholder && placeholder.parentNode) {
+        // Insert dragged element where placeholder is
+        placeholder.parentNode.insertBefore(draggedElement, placeholder);
+    }
+
     return false;
 }
 

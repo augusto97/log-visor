@@ -894,8 +894,8 @@ input[type="file"] {
 }
 
 .chart-card.chart-third {
-    flex: 1 1 calc(33.333% - 14px);
-    max-width: calc(33.333% - 14px);
+    flex: 1 1 calc(33.333% - 13.333px);
+    max-width: calc(33.333% - 13.333px);
 }
 
 .chart-card.chart-full {
@@ -1017,8 +1017,8 @@ input[type="file"] {
 }
 
 /* Responsive */
-@media (max-width: 1400px) {
-    /* On smaller desktops, make thirds become halves for better readability */
+@media (max-width: 1200px) {
+    /* On smaller screens, make thirds become halves for better readability */
     .chart-card.chart-third {
         flex: 1 1 calc(50% - 10px);
         max-width: calc(50% - 10px);
