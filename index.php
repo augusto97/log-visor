@@ -208,27 +208,35 @@
                 </div>
             </div>
 
-            <!-- Charts Row 5 - IPs y Códigos HTTP -->
-            <div class="charts-row" id="networkChartsRow" style="display: none;">
-                <div class="chart-card" id="ipChartCard">
+            <!-- Charts Row 5 - IPs y Códigos HTTP (3 columnas) -->
+            <div class="charts-row charts-row-triple" id="networkChartsRow" style="display: none;">
+                <div class="chart-card chart-third" id="ipChartCard">
                     <h3>🌐 Top IPs/Clientes</h3>
                     <div class="chart-container" id="ipChart"></div>
                 </div>
-                <div class="chart-card" id="statusChartCard">
+                <div class="chart-card chart-third" id="statusChartCard">
                     <h3>📡 Códigos de Estado HTTP</h3>
                     <div class="chart-container" id="statusChart"></div>
                 </div>
+                <div class="chart-card chart-third" id="moduleChartCard2" style="display: none;">
+                    <h3>🔧 Top Módulos</h3>
+                    <div class="chart-container" id="moduleChart2"></div>
+                </div>
             </div>
 
-            <!-- Charts Row 6 - Contexto adicional -->
-            <div class="charts-row" id="contextChartsRow" style="display: none;">
-                <div class="chart-card">
+            <!-- Charts Row 6 - Contexto adicional (3 columnas) -->
+            <div class="charts-row charts-row-triple" id="contextChartsRow" style="display: none;">
+                <div class="chart-card chart-third">
                     <h3 id="contextChart1Title">Contexto</h3>
                     <div class="chart-container" id="contextChart1"></div>
                 </div>
-                <div class="chart-card">
+                <div class="chart-card chart-third">
                     <h3 id="contextChart2Title">Contexto</h3>
                     <div class="chart-container" id="contextChart2"></div>
+                </div>
+                <div class="chart-card chart-third" style="display: none;">
+                    <h3 id="contextChart3Title">Contexto</h3>
+                    <div class="chart-container" id="contextChart3"></div>
                 </div>
             </div>
 

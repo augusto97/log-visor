@@ -820,6 +820,10 @@ input[type="file"] {
     gap: 20px;
 }
 
+.charts-row-triple {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .chart-card {
     background: var(--bg-medium);
     border: 1px solid var(--border);
@@ -828,6 +832,13 @@ input[type="file"] {
     cursor: move;
     transition: all 0.3s ease;
     position: relative;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.chart-third {
+    grid-column: span 1;
 }
 
 .chart-card.dragging {
@@ -955,16 +966,25 @@ input[type="file"] {
     .charts-row {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .charts-row-triple {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 1024px) {
     .charts-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
+    }
+
+    .charts-row-triple {
+        grid-template-columns: 1fr !important;
     }
 
     .chart-card.wide,
-    .chart-card.full-width {
-        grid-column: 1;
+    .chart-card.full-width,
+    .chart-third {
+        grid-column: 1 !important;
     }
 
     /* Hide resize controls on mobile */
@@ -984,17 +1004,24 @@ input[type="file"] {
 
 @media (max-width: 768px) {
     .charts-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 15px;
+    }
+
+    .charts-row-triple {
+        grid-template-columns: 1fr !important;
     }
 
     .chart-card {
         padding: 15px;
+        max-width: 100%;
+        overflow-x: auto;
     }
 
     .chart-card.wide,
-    .chart-card.full-width {
-        grid-column: 1;
+    .chart-card.full-width,
+    .chart-third {
+        grid-column: 1 !important;
     }
 }
 

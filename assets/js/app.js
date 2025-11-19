@@ -1394,14 +1394,17 @@ function addResizeControls(card) {
     const controls = document.createElement('div');
     controls.className = 'chart-resize-controls';
     controls.innerHTML = `
-        <button class="resize-btn" data-size="1" title="1 columna">
+        <button class="resize-btn" data-size="third" title="1/3 ancho">
             <span class="resize-icon">▐</span>
         </button>
-        <button class="resize-btn" data-size="2" title="2 columnas">
+        <button class="resize-btn" data-size="1" title="1/2 ancho">
             <span class="resize-icon">▐▐</span>
         </button>
-        <button class="resize-btn" data-size="full" title="Ancho completo">
+        <button class="resize-btn" data-size="2" title="2/3 ancho">
             <span class="resize-icon">▐▐▐</span>
+        </button>
+        <button class="resize-btn" data-size="full" title="Ancho completo">
+            <span class="resize-icon">▐▐▐▐</span>
         </button>
     `;
 
@@ -1433,6 +1436,8 @@ function updateActiveResizeButton(card) {
         activeSize = 'full';
     } else if (card.classList.contains('wide')) {
         activeSize = '2';
+    } else if (card.classList.contains('chart-third')) {
+        activeSize = 'third';
     }
 
     const activeBtn = controls.querySelector(`[data-size="${activeSize}"]`);
@@ -1443,10 +1448,12 @@ function updateActiveResizeButton(card) {
 
 function resizeChart(card, size) {
     // Remove all size classes
-    card.classList.remove('wide', 'full-width');
+    card.classList.remove('wide', 'full-width', 'chart-third');
 
     // Add new size class
-    if (size === '2') {
+    if (size === 'third') {
+        card.classList.add('chart-third');
+    } else if (size === '2') {
         card.classList.add('wide');
     } else if (size === 'full') {
         card.classList.add('full-width');
@@ -1501,18 +1508,18 @@ function handleDragOver(e) {
     e.dataTransfer.dropEffect = 'move';
 
     // Move placeholder to show where element will be dropped
-    if (placeholder && this !== draggedElement) {
-        const parent = this.parentNode;
-        const allCards = Array.from(parent.children).filter(el =>
-            el.classList.contains('chart-card') || el.classList.contains('drag-placeholder')
-        );
-        const thisIndex = allCards.indexOf(this);
-        const placeholderIndex = allCards.indexOf(placeholder);
+    if (placeholder && this !== draggedElement && this.classList.contains('chart-card')) {
+        const rect = this.getBoundingClientRect();
+        const midpoint = rect.left + (rect.width / 2);
+        const mouseX = e.clientX;
 
-        if (thisIndex < placeholderIndex) {
-            parent.insertBefore(placeholder, this);
+        // Determine if we should insert before or after
+        if (mouseX < midpoint) {
+            // Insert before
+            this.parentNode.insertBefore(placeholder, this);
         } else {
-            parent.insertBefore(placeholder, this.nextSibling);
+            // Insert after
+            this.parentNode.insertBefore(placeholder, this.nextSibling);
         }
     }
 
