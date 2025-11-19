@@ -1357,24 +1357,110 @@ function truncate(str, len) {
 window.showLogDetail = showLogDetail;
 
 // =====================================
-// DRAG AND DROP FOR CHART REORGANIZATION
+// DRAG AND DROP & RESIZE FOR CHARTS
 // =====================================
 
 let draggedElement = null;
+let placeholder = null;
 
 function initDragAndDrop() {
     const chartCards = document.querySelectorAll('.chart-card');
+    const isMobile = window.innerWidth <= 1024;
 
     chartCards.forEach(card => {
-        card.setAttribute('draggable', 'true');
+        // Only enable drag & drop on desktop
+        if (!isMobile) {
+            card.setAttribute('draggable', 'true');
 
-        card.addEventListener('dragstart', handleDragStart);
-        card.addEventListener('dragend', handleDragEnd);
-        card.addEventListener('dragover', handleDragOver);
-        card.addEventListener('drop', handleDrop);
-        card.addEventListener('dragleave', handleDragLeave);
-        card.addEventListener('dragenter', handleDragEnter);
+            // Add resize controls
+            addResizeControls(card);
+
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragleave', handleDragLeave);
+            card.addEventListener('dragenter', handleDragEnter);
+        } else {
+            card.setAttribute('draggable', 'false');
+        }
     });
+}
+
+function addResizeControls(card) {
+    // Don't add if already exists
+    if (card.querySelector('.chart-resize-controls')) return;
+
+    const controls = document.createElement('div');
+    controls.className = 'chart-resize-controls';
+    controls.innerHTML = `
+        <button class="resize-btn" data-size="1" title="1 columna">
+            <span class="resize-icon">▐</span>
+        </button>
+        <button class="resize-btn" data-size="2" title="2 columnas">
+            <span class="resize-icon">▐▐</span>
+        </button>
+        <button class="resize-btn" data-size="full" title="Ancho completo">
+            <span class="resize-icon">▐▐▐</span>
+        </button>
+    `;
+
+    card.appendChild(controls);
+
+    // Update active button based on current size
+    updateActiveResizeButton(card);
+
+    // Add event listeners
+    controls.querySelectorAll('.resize-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const size = btn.dataset.size;
+            resizeChart(card, size);
+        });
+    });
+}
+
+function updateActiveResizeButton(card) {
+    const controls = card.querySelector('.chart-resize-controls');
+    if (!controls) return;
+
+    controls.querySelectorAll('.resize-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    let activeSize = '1';
+    if (card.classList.contains('full-width')) {
+        activeSize = 'full';
+    } else if (card.classList.contains('wide')) {
+        activeSize = '2';
+    }
+
+    const activeBtn = controls.querySelector(`[data-size="${activeSize}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+}
+
+function resizeChart(card, size) {
+    // Remove all size classes
+    card.classList.remove('wide', 'full-width');
+
+    // Add new size class
+    if (size === '2') {
+        card.classList.add('wide');
+    } else if (size === 'full') {
+        card.classList.add('full-width');
+    }
+    // size '1' doesn't need a class
+
+    updateActiveResizeButton(card);
+}
+
+function createPlaceholder(element) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'drag-placeholder';
+    placeholder.style.height = element.offsetHeight + 'px';
+    return placeholder;
 }
 
 function handleDragStart(e) {
@@ -1382,10 +1468,24 @@ function handleDragStart(e) {
     this.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', this.innerHTML);
+
+    // Create and insert placeholder
+    placeholder = createPlaceholder(this);
+    setTimeout(() => {
+        if (draggedElement && draggedElement.parentNode) {
+            draggedElement.parentNode.insertBefore(placeholder, draggedElement.nextSibling);
+        }
+    }, 0);
 }
 
 function handleDragEnd(e) {
     this.classList.remove('dragging');
+
+    // Remove placeholder
+    if (placeholder && placeholder.parentNode) {
+        placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
 
     // Remove all drag-over classes
     const chartCards = document.querySelectorAll('.chart-card');
@@ -1399,6 +1499,23 @@ function handleDragOver(e) {
         e.preventDefault();
     }
     e.dataTransfer.dropEffect = 'move';
+
+    // Move placeholder to show where element will be dropped
+    if (placeholder && this !== draggedElement) {
+        const parent = this.parentNode;
+        const allCards = Array.from(parent.children).filter(el =>
+            el.classList.contains('chart-card') || el.classList.contains('drag-placeholder')
+        );
+        const thisIndex = allCards.indexOf(this);
+        const placeholderIndex = allCards.indexOf(placeholder);
+
+        if (thisIndex < placeholderIndex) {
+            parent.insertBefore(placeholder, this);
+        } else {
+            parent.insertBefore(placeholder, this.nextSibling);
+        }
+    }
+
     return false;
 }
 
@@ -1409,7 +1526,10 @@ function handleDragEnter(e) {
 }
 
 function handleDragLeave(e) {
-    this.classList.remove('drag-over');
+    // Only remove if we're actually leaving the element
+    if (e.target === this) {
+        this.classList.remove('drag-over');
+    }
 }
 
 function handleDrop(e) {
@@ -1417,30 +1537,9 @@ function handleDrop(e) {
         e.stopPropagation();
     }
 
-    if (draggedElement !== this) {
-        // Get parent containers
-        const draggedParent = draggedElement.parentNode;
-        const droppedParent = this.parentNode;
-
-        // If they're in the same row, swap them
-        if (draggedParent === droppedParent) {
-            const allCards = Array.from(draggedParent.children);
-            const draggedIndex = allCards.indexOf(draggedElement);
-            const droppedIndex = allCards.indexOf(this);
-
-            if (draggedIndex < droppedIndex) {
-                draggedParent.insertBefore(draggedElement, this.nextSibling);
-            } else {
-                draggedParent.insertBefore(draggedElement, this);
-            }
-        } else {
-            // If they're in different rows, swap their positions
-            const draggedNext = draggedElement.nextSibling;
-            const droppedNext = this.nextSibling;
-
-            droppedParent.insertBefore(draggedElement, droppedNext);
-            draggedParent.insertBefore(this, draggedNext);
-        }
+    if (draggedElement && placeholder && placeholder.parentNode) {
+        // Insert dragged element where placeholder is
+        placeholder.parentNode.insertBefore(draggedElement, placeholder);
     }
 
     this.classList.remove('drag-over');
