@@ -168,31 +168,27 @@
                 </div>
             </div>
 
-            <!-- Charts Row 1 - Timeline y Distribución -->
+            <!-- Charts Row 1 - Timeline -->
             <div class="charts-row">
-                <div class="chart-card wide">
+                <div class="chart-card full-width">
                     <h3>📈 Timeline de Logs</h3>
                     <div class="chart-container" id="timelineChart"></div>
                 </div>
+            </div>
+
+            <!-- Charts Row 2 - Distribución y Actividad por hora -->
+            <div class="charts-row">
                 <div class="chart-card">
                     <h3>📊 Distribución por Nivel</h3>
                     <div class="chart-container" id="levelChart"></div>
                 </div>
-            </div>
-
-            <!-- Charts Row 2 - Actividad por hora y Top Errores -->
-            <div class="charts-row">
                 <div class="chart-card">
                     <h3>🕐 Actividad por Hora</h3>
                     <div class="chart-container" id="hourlyChart"></div>
                 </div>
-                <div class="chart-card">
-                    <h3>🔥 Top 10 Errores Frecuentes</h3>
-                    <div class="chart-container" id="topErrorsChart"></div>
-                </div>
             </div>
 
-            <!-- Charts Row 3 - Distribución por día y módulos -->
+            <!-- Charts Row 3 - Día de semana y Módulos -->
             <div class="charts-row">
                 <div class="chart-card">
                     <h3>📅 Distribución por Día de la Semana</h3>
@@ -204,7 +200,15 @@
                 </div>
             </div>
 
-            <!-- Charts Row 4 - IPs y Códigos HTTP -->
+            <!-- Charts Row 4 - Top Errores Frecuentes -->
+            <div class="charts-row">
+                <div class="chart-card full-width">
+                    <h3>🔥 Top 10 Errores Frecuentes</h3>
+                    <div class="chart-container" id="topErrorsChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 5 - IPs y Códigos HTTP -->
             <div class="charts-row" id="networkChartsRow" style="display: none;">
                 <div class="chart-card" id="ipChartCard">
                     <h3>🌐 Top IPs/Clientes</h3>
@@ -216,7 +220,7 @@
                 </div>
             </div>
 
-            <!-- Charts Row 5 - Contexto adicional -->
+            <!-- Charts Row 6 - Contexto adicional -->
             <div class="charts-row" id="contextChartsRow" style="display: none;">
                 <div class="chart-card">
                     <h3 id="contextChart1Title">Contexto</h3>
