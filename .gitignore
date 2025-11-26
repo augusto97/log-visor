@@ -1,6 +1,16 @@
 # Uploaded log files
 uploads/*
 !uploads/.gitkeep
+!uploads/.htaccess
+
+# Security logs
+logs/*
+!logs/.gitkeep
+
+# Sensitive configuration
+.env
+.env.local
+.env.*.local
 
 # System files
 .DS_Store
@@ -28,3 +38,6 @@ composer.lock
 # Test and debug files (optional - uncomment to ignore)
 phpinfo.php
 test_simple.php
+
+# Session files (if stored locally)
+sessions/

@@ -1,3 +1,12 @@
+<?php
+require_once 'config.php';
+
+initSecureSession();
+setSecurityHeaders();
+requireAuth();
+
+securityLog('Acceso a debug.php');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
