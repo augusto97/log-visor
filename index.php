@@ -1,4 +1,20 @@
-<?php session_start(); ?>
+<?php
+require_once 'config.php';
+
+initSecureSession();
+setSecurityHeaders();
+requireAuth();
+
+// Limpiar archivos antiguos al cargar la página (solo 1 de cada 10 veces para no afectar rendimiento)
+if (rand(1, 10) === 1) {
+    cleanupOldFiles();
+}
+
+// Generar token CSRF
+$csrfToken = generateCsrfToken();
+
+securityLog('Acceso a index.php');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,6 +38,7 @@
         </div>
         <div class="top-bar-right">
             <button class="btn btn-secondary btn-sm hidden" id="closeFileBtn">✕ Cerrar</button>
+            <a href="logout.php" class="btn btn-secondary btn-sm" style="margin-left: 10px;">🔓 Cerrar Sesión</a>
         </div>
     </div>
 
@@ -278,6 +295,10 @@
         </div>
     </div>
 
+    <script>
+        // Pasar CSRF token al JavaScript
+        window.CSRF_TOKEN = '<?= htmlspecialchars($csrfToken) ?>';
+    </script>
     <script src="assets/js/app.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
