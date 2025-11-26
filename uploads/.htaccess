@@ -1,0 +1,6 @@
+# Denegar acceso directo a todos los archivos en uploads/
+Order Deny,Allow
+Deny from all
+
+# Si quieres permitir acceso desde PHP solamente, esta configuración lo hace
+# Los archivos solo podrán ser servidos a través de scripts PHP autenticados

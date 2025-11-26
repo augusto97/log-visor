@@ -221,6 +221,11 @@ function uploadFile(file) {
     const formData = new FormData();
     formData.append('logfile', file);
 
+    // Agregar CSRF token para seguridad
+    if (window.CSRF_TOKEN) {
+        formData.append('csrf_token', window.CSRF_TOKEN);
+    }
+
     fetch('upload.php', {
         method: 'POST',
         body: formData
