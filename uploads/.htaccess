@@ -1,6 +1,27 @@
-# Denegar acceso directo a todos los archivos en uploads/
-Order Deny,Allow
-Deny from all
+# Protección de seguridad para directorio uploads
+# Previene ejecución de PHP y otros scripts
 
-# Si quieres permitir acceso desde PHP solamente, esta configuración lo hace
-# Los archivos solo podrán ser servidos a través de scripts PHP autenticados
+# Deshabilitar ejecución de PHP
+php_flag engine off
+
+# Forzar todos los archivos como texto plano
+AddType text/plain .php .php3 .php4 .php5 .phtml .phar .pl .py .jsp .asp .sh .cgi
+
+# Remover handlers de PHP
+RemoveHandler .php .phtml .php3 .php4 .php5 .phar
+
+# Solo permitir método GET (lectura)
+<LimitExcept GET HEAD>
+    Require all denied
+</LimitExcept>
+
+# Denegar acceso a archivos ocultos
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Content-Disposition "attachment"
+</IfModule>
